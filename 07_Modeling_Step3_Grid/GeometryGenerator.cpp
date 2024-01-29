@@ -404,9 +404,67 @@ MeshData GeometryGenerator::MakeTetrahedron() {
 }
 MeshData GeometryGenerator::SubdivideToSphere(const float radius,
                                               MeshData meshData) {
-
     // TODO:
+    using namespace DirectX;
+    using DirectX::SimpleMath::Matrix;
+    using DirectX::SimpleMath::Vector3;
 
-    return MeshData();
+    auto ProjectVertex = [&](Vertex &v) {
+        v.normal = v.position;
+        v.normal.Normalize();
+        v.position = v.normal * radius;
+    };
+    
+    MeshData newMesh;
+    uint16_t count = 0;
+    for (size_t i = 0; i < meshData.indices.size(); i += 3) {
+        size_t i0 = meshData.indices[i];
+        size_t i1 = meshData.indices[i + 1];
+        size_t i2 = meshData.indices[i + 2];
+
+        Vertex v0 = meshData.vertices[i0];
+        Vertex v1 = meshData.vertices[i1];
+        Vertex v2 = meshData.vertices[i2];
+    
+        Vertex v3;
+        v3.position = (v0.position + v2.position) / 2;
+        v3.texcoord = (v0.texcoord + v2.texcoord) / 2;
+
+        Vertex v4;
+        v4.position = (v0.position + v1.position) / 2;
+        v4.texcoord = (v0.texcoord + v1.texcoord) / 2;
+
+        Vertex v5;
+        v5.position = (v1.position + v2.position) / 2;
+        v5.texcoord = (v1.texcoord + v2.texcoord) / 2;
+
+        ProjectVertex(v3);
+        ProjectVertex(v4);
+        ProjectVertex(v5);
+
+        newMesh.vertices.push_back(v4);
+        newMesh.vertices.push_back(v1);
+        newMesh.vertices.push_back(v5);
+        
+        newMesh.vertices.push_back(v0);
+        newMesh.vertices.push_back(v4);
+        newMesh.vertices.push_back(v3);
+
+        newMesh.vertices.push_back(v3);
+        newMesh.vertices.push_back(v4);
+        newMesh.vertices.push_back(v5);
+
+        newMesh.vertices.push_back(v3);
+        newMesh.vertices.push_back(v5);
+        newMesh.vertices.push_back(v2);
+
+        //인덱스 업데이트
+        for (uint16_t j = 0; j < 12; j++) {
+            newMesh.indices.push_back(j + count); 
+        }
+         count += 12;
+    }
+
+    return newMesh;
 }
 } // namespace hlab

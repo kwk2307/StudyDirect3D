@@ -43,7 +43,11 @@ bool ExampleApp::Initialize() {
 
     // MeshData meshData = GeometryGenerator::MakeCylinder(2.0f, 2.0f, 2, 30);
 
-    MeshData meshData = GeometryGenerator::MakeSphere(2.0f, 100, 100);
+    MeshData meshData = GeometryGenerator::MakeSphere(2.0f, 5, 5);
+
+    meshData = GeometryGenerator::SubdivideToSphere(2.f, meshData);
+    meshData = GeometryGenerator::SubdivideToSphere(2.f, meshData);
+    meshData = GeometryGenerator::SubdivideToSphere(2.f, meshData);
 
     m_mesh = std::make_shared<Mesh>();
 
