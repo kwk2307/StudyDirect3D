@@ -414,9 +414,21 @@ MeshData GeometryGenerator::SubdivideToSphere(const float radius,
         v.normal.Normalize();
         v.position = v.normal * radius;
     };
-    
+
+    auto UpdateFaceNormal = [](Vertex &v0, Vertex &v1, Vertex &v2) {
+        Vector3 faceNormal = XMVector3Cross(
+        v2.position - v0.position, v1.position - v0.position);
+        
+        faceNormal.Normalize();
+
+        v0.normal = faceNormal;
+        v1.normal = faceNormal;
+        v2.normal = faceNormal;
+    };
+
     MeshData newMesh;
     uint16_t count = 0;
+
     for (size_t i = 0; i < meshData.indices.size(); i += 3) {
         size_t i0 = meshData.indices[i];
         size_t i1 = meshData.indices[i + 1];
@@ -442,18 +454,22 @@ MeshData GeometryGenerator::SubdivideToSphere(const float radius,
         ProjectVertex(v4);
         ProjectVertex(v5);
 
+        UpdateFaceNormal(v4, v1, v5);
         newMesh.vertices.push_back(v4);
         newMesh.vertices.push_back(v1);
         newMesh.vertices.push_back(v5);
         
+        UpdateFaceNormal(v0, v4, v3);
         newMesh.vertices.push_back(v0);
         newMesh.vertices.push_back(v4);
         newMesh.vertices.push_back(v3);
 
+        UpdateFaceNormal(v3, v4, v5);
         newMesh.vertices.push_back(v3);
         newMesh.vertices.push_back(v4);
         newMesh.vertices.push_back(v5);
 
+        UpdateFaceNormal(v3, v5, v2);
         newMesh.vertices.push_back(v3);
         newMesh.vertices.push_back(v5);
         newMesh.vertices.push_back(v2);
