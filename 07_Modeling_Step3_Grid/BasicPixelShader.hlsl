@@ -42,4 +42,5 @@ float4 main(PixelShaderInput input) : SV_TARGET
     }
 
     return useTexture ? float4(color, 1.0) * g_texture0.Sample(g_sampler, input.texcoord) : float4(color, 1.0);
+    
 }

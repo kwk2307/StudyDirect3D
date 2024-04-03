@@ -454,22 +454,22 @@ MeshData GeometryGenerator::SubdivideToSphere(const float radius,
         ProjectVertex(v4);
         ProjectVertex(v5);
 
-        UpdateFaceNormal(v4, v1, v5);
+        //UpdateFaceNormal(v4, v1, v5);
         newMesh.vertices.push_back(v4);
         newMesh.vertices.push_back(v1);
         newMesh.vertices.push_back(v5);
         
-        UpdateFaceNormal(v0, v4, v3);
+        //UpdateFaceNormal(v0, v4, v3);
         newMesh.vertices.push_back(v0);
         newMesh.vertices.push_back(v4);
         newMesh.vertices.push_back(v3);
 
-        UpdateFaceNormal(v3, v4, v5);
+        //UpdateFaceNormal(v3, v4, v5);
         newMesh.vertices.push_back(v3);
         newMesh.vertices.push_back(v4);
         newMesh.vertices.push_back(v5);
 
-        UpdateFaceNormal(v3, v5, v2);
+        //UpdateFaceNormal(v3, v5, v2);
         newMesh.vertices.push_back(v3);
         newMesh.vertices.push_back(v5);
         newMesh.vertices.push_back(v2);
