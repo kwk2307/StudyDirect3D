@@ -22,11 +22,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // TODO: 여기에 코드를 입력합니다.
-    Viewport defViewport(0, 0, 800, 600);
+    ScreenPoint defScreenSize(800, 600);
     Renderer Instance(new WindowsRenderer(), new GameEngine(new SceneMng(), new CollisionMng()));
 
-    WindowsPlayer::gOnResizeFunc = [&Instance](const Viewport& InNewScreenSize) {
-        if (InNewScreenSize.width == 0 || InNewScreenSize.height == 0) {
+    WindowsPlayer::gOnResizeFunc = [&Instance](const ScreenPoint& InNewScreenSize) {
+        if (InNewScreenSize.HasZero()) {
             return;
         }
         Instance.OnResize(InNewScreenSize);
@@ -37,7 +37,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     //Instance._InputBindingFunc = WindowsUtil::BindInput;
     //WindowsUtil::BindSystemInput(instance.GetSystemInput());
 
-    if (!WindowsPlayer::Create(hInstance, defViewport))
+    if (!WindowsPlayer::Create(hInstance, defScreenSize))
     {
         return -1;
     }

@@ -7,7 +7,7 @@ public:
 	Renderer(RendererInterface* RI, EngineInterface* EI);
 	
 	void OnTick();
-	void OnResize(const Viewport& InNewScreenSize);
+	void OnResize(const ScreenPoint& InNewScreenSize);
 	void OnShutdown();
 
 	float GetFrameFPS() const { return _FrameFPS; }

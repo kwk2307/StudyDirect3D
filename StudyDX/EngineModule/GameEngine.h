@@ -14,7 +14,7 @@ public:
 	SceneMngInterface& GetSceneMng() { return *_SceneMng.get(); }
 	CollisionMngInterface& GetCollisionMng() { return *_CollisionMng.get(); }
 
-	virtual InputManager& GetInputManager() override { return _InputManager; }
+	//virtual InputManager& GetInputManager() override { return _InputManager; }
 
 	void Update(float InDeltaSeconds);
 

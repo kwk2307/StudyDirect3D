@@ -11,7 +11,7 @@ void Renderer::OnTick()
 {
 }
 
-void Renderer::OnResize(const Viewport& InNewScreenSize)
+void Renderer::OnResize(const ScreenPoint& InNewScreenSize)
 {
 }
 

@@ -84,17 +84,18 @@ void WindowsRenderer::DrawPoint(const ScreenPoint& InScreenPos, const Color& InC
 	}
 
 	Color* dest = _ScreenBuffer;
-	*(dest + GetScreenBufferIndex(InScreenPos)) = 
-		(InColor * (InColor.A/255)) + 
-		(bufferColor * ((255 - InColor.A) / 255));
+
+	*(dest + GetScreenBufferIndex(InScreenPos)) =
+		(InColor * InColor.A()) + (bufferColor * (1 - InColor.A()));
 	
 	return;
 }
 
 void WindowsRenderer::DrawLine(const Vector4& InStartPos, const Vector4& InEndPos, const Color& InColor)
 {
-	Vector2 clippedStart = InStartPos.ToVector2();
-	Vector2 clippedEnd = InEndPos.ToVector2();
+	
+	Vector2 clippedStart = Vector2(InStartPos);
+	Vector2 clippedEnd = Vector2(InEndPos);
 	Vector2 screenExtend = Vector2(_ScreenSize.X, _ScreenSize.Y) * 0.5f;
 	Vector2 minScreen = -screenExtend;
 	Vector2 maxScreen = screenExtend;
@@ -228,20 +229,20 @@ int WindowsRenderer::GetScreenBufferIndex(const ScreenPoint& InPos) const
 int WindowsRenderer::TestRegion(const Vector2& InVectorPos, const Vector2& InMinPos, const Vector2& InMaxPos)
 {
 	int result = 0;
-	if (InVectorPos.X < InMinPos.X)
+	if (InVectorPos.x < InMinPos.x)
 	{
 		result = result | 0b0001;
 	}
-	else if (InVectorPos.X > InMaxPos.X)
+	else if (InVectorPos.x > InMaxPos.x)
 	{
 		result = result | 0b0010;
 	}
 
-	if (InVectorPos.Y < InMinPos.Y)
+	if (InVectorPos.y < InMinPos.y)
 	{
 		result = result | 0b0100;
 	}
-	else if (InVectorPos.Y > InMaxPos.Y)
+	else if (InVectorPos.y > InMaxPos.y)
 	{
 		result = result | 0b1000;
 	}
@@ -254,8 +255,8 @@ bool WindowsRenderer::CohenSutherlandLineClip(Vector2& InOutStartPos, Vector2& I
 	int startTest = TestRegion(InOutStartPos, InMinPos, InMaxPos);
 	int endTest = TestRegion(InOutEndPos, InMinPos, InMaxPos);
 
-	float width = (InOutEndPos.X - InOutStartPos.X);
-	float height = (InOutEndPos.Y - InOutStartPos.Y);
+	float width = (InOutEndPos.x - InOutStartPos.x);
+	float height = (InOutEndPos.y - InOutStartPos.y);
 
 	while (true)
 	{
@@ -277,41 +278,41 @@ bool WindowsRenderer::CohenSutherlandLineClip(Vector2& InOutStartPos, Vector2& I
 			{
 				if (currentTest & 1)
 				{
-					clippedPosition.X = InMinPos.X;
+					clippedPosition.x = InMinPos.x;
 				}
 				else
 				{
-					clippedPosition.X = InMaxPos.X;
+					clippedPosition.x = InMaxPos.x;
 				}
 
 				if (MathUtil::EqualsInTolerance(height, 0.0f))
 				{
-					clippedPosition.Y = InOutStartPos.Y;
+					clippedPosition.y = InOutStartPos.y;
 
 				}
 				else
 				{
-					clippedPosition.Y = InOutStartPos.Y + height * (clippedPosition.X - InOutStartPos.X) / width;
+					clippedPosition.y = InOutStartPos.y + height * (clippedPosition.x - InOutStartPos.x) / width;
 				}
 			}
 			else
 			{
 				if (currentTest & 0b0100)
 				{
-					clippedPosition.Y = InMinPos.Y;
+					clippedPosition.y = InMinPos.y;
 				}
 				else
 				{
-					clippedPosition.Y = InMaxPos.Y;
+					clippedPosition.y = InMaxPos.y;
 				}
 
 				if (MathUtil::EqualsInTolerance(width, 0.0f))
 				{
-					clippedPosition.X = InOutStartPos.X;
+					clippedPosition.x = InOutStartPos.x;
 				}
 				else
 				{
-					clippedPosition.X = InOutStartPos.X + width * (clippedPosition.Y - InOutStartPos.Y) / height;
+					clippedPosition.x = InOutStartPos.x + width * (clippedPosition.y - InOutStartPos.y) / height;
 				}
 			}
 
@@ -333,7 +334,7 @@ bool WindowsRenderer::CohenSutherlandLineClip(Vector2& InOutStartPos, Vector2& I
 Color WindowsRenderer::GetPixel(const ScreenPoint& InPos)
 {
 	if (!IsInScreen(InPos)) {
-		return Color::Error;
+		return Color(0.7f, 0.7f, 0.7f);
 	}
 	Color* dest = _ScreenBuffer;
 	

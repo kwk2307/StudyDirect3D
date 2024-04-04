@@ -4,7 +4,7 @@ namespace WindowsPlayer
 {
 	static HINSTANCE gInstance;
 	static HWND gHandle;
-	static std::function<void(Viewport& InNewScreenSize)> gOnResizeFunc;
+	static std::function<void(ScreenPoint& InNewScreenSize)> gOnResizeFunc;
 
 	static const TCHAR* gClassName = _T("SOFTRENDERER_PLAYER");
 	static TCHAR gTitle[64];
@@ -17,16 +17,12 @@ namespace WindowsPlayer
 		case WM_DISPLAYCHANGE:
 		case WM_SIZE:
 		{	
-
-			RECT rect;
-			::GetClientRect(hwnd, &rect);
-
 			int newWidth = (lParam & 0xffff);
 			int newHeight = ((lParam >> 16) & 0xffff);
 			if (gOnResizeFunc)
 			{
-				Viewport viewport(rect.left, rect.top, newWidth, newHeight);
-				gOnResizeFunc(viewport);
+				ScreenPoint screenPoint(newWidth, newHeight);
+				gOnResizeFunc(screenPoint);
 			}
 			break;
 		}
@@ -53,7 +49,7 @@ namespace WindowsPlayer
 		return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
 
-	bool Create(HINSTANCE InInstance, const Viewport& InDefaultScreenSize)
+	bool Create(HINSTANCE InInstance, const ScreenPoint& InDefaultScreenSize)
 	{
 		gInstance = InInstance;
 
@@ -80,8 +76,8 @@ namespace WindowsPlayer
 		RECT rect;
 		rect.left = 0;
 		rect.top = 0;
-		rect.right = MathUtil::TruncToInt(InDefaultScreenSize.width) - 1;
-		rect.bottom = MathUtil::TruncToInt(InDefaultScreenSize.height) - 1;
+		rect.right = InDefaultScreenSize.X - 1;
+		rect.bottom = InDefaultScreenSize.Y - 1;
 		::AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
 		int WindowWidth = rect.right - rect.left + 1;
 		int WindowHeight = rect.bottom - rect.top + 1;

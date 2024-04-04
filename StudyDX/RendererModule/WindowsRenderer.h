@@ -2,7 +2,7 @@
 class WindowsRenderer: public RendererInterface
 {
 public:
-	virtual bool Init(const Viewport& InSize) override;
+	virtual bool Init(const ScreenPoint& InSize) override;
 	virtual void Shutdown() override;
 	virtual bool IsInitialized() const { return _Initialized; }
 
@@ -11,7 +11,7 @@ public:
 	virtual void EndFrame() override;
 
 public:
-	virtual void DrawPoint(const Viewport& InScreenPos, const Color& InColor) override;
+	virtual void DrawPoint(const ScreenPoint& InScreenPos, const Color& InColor) override;
 	virtual void DrawLine(const Vector4& InStartPos, const Vector4& InEndPos, const Color& InColor) override;
 
 	virtual void DrawFullVerticalLine(int InX, const Color& InColor);

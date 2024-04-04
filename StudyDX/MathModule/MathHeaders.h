@@ -20,7 +20,9 @@ typedef signed long long	INT64;	// 부호 있는 64비트.
 using namespace DirectX::SimpleMath;
 
 #include "MathUtil.h"
-
+#include "ScreenPoint.h"
+#include "Rotator.h"
+#include "Transform.h"
 
 
 

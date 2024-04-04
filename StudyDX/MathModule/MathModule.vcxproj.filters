@@ -24,12 +24,27 @@
     <ClInclude Include="Precompiled.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="ScreenPoint.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Rotator.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MathUtil.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Precompiled.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Rotator.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
