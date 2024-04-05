@@ -125,9 +125,6 @@ void ExampleApp::Update(float dt) {
 
     using namespace DirectX;
 
-    
-    SimpleMath::Quaternion(); 
-
     // 모델의 변환
     m_BasicVertexConstantBufferData.model =
         Matrix::CreateScale(m_modelScaling) *

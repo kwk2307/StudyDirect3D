@@ -25,5 +25,3 @@ using namespace DirectX::SimpleMath;
 #include "Transform.h"
 
 
-
-

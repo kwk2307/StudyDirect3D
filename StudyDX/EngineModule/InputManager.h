@@ -1,56 +1,39 @@
+
 #pragma once
-enum class KeyState
+
+enum class InputAxis : UINT32
 {
-	NONE,	// 안누름
-	TAP,	// 한번눌림
-	HOLD,	// 누르고 유지중
-	AWAY,	// 막 눌림이 사라짐
+	XAxis = 0,
+	YAxis,
+	ZAxis,
+	WAxis,
+	LastAxis
 };
 
-enum class Key {
-
-	LEFT,
-	RIGHT,
-	UP,
-	DOWN,
-	Q,
-	W,
-	E,
-	R,
-	A,
-	S,
-	D,
-	F,
-	ALT,
-	CTRL,
-	SPACE,
-	ENTER,
-	ESC,
-	LBUTTON,
-	RBUTTON,
-	LAST,
-};
-
-struct keyinfo {
-	bool prev = false;
-	KeyState state = KeyState::NONE;
-};
-
-class InputManager
+enum class InputButton : UINT32
 {
-	//input Manager 수정 필요 할 것 같음 
-public:
-	InputManager();
-	~InputManager();
+	Space = 0,
+	Z,
+	X,
+	LastButton
+};
 
-public:
 
-	void Update();
-	KeyState GetKeyState(Key InKey) { return vecKey[static_cast<int>(InKey)].state; }
-	float GetXAxis();
-	float GetYAxis();
+struct InputManager
+{
+public:
+	float GetAxis(InputAxis InInputAxis) const;
+	bool IsPressed(InputButton InInputButton) const;
+	bool IsPressing(InputButton InInputButton) const;
+	bool IsReleased(InputButton InInputButton) const;
+	bool IsInputReady() const;
+	void SetInputAxis(InputAxis InInputAxis, std::function<float()> InAxisFn);
+	void SetInputButton(InputButton InInputButton, std::function<bool()> InPressedFn);
+	void UpdateInput();
 
 private:
-	std::vector<keyinfo> vecKey;
+	std::array<std::function<float()>, static_cast<size_t>(InputAxis::LastAxis)> AxisMap = { 0 };
+	std::array<std::function<bool()>, static_cast<size_t>(InputButton::LastButton)> PressedButtonMap = { 0 };
+	std::array<bool, static_cast<size_t>(InputButton::LastButton)> PrevButtonStatus = { 0 };
 };
 

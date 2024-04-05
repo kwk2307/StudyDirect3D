@@ -2,26 +2,25 @@
 class Texture
 {
 public:
+	Texture() = default;
 	Texture(std::string InFileName);
-	Texture(std::string InFileName, std::pair<UINT32, UINT32> start, std::pair<UINT32, UINT32> size);
-	Texture(Color InColor);
-	~Texture() {}
+	Texture(std::wstring InFileName);
+	~Texture() { }
 
 public:
 	void Release();
 	bool IsIntialized() const { return (_Buffer.size() > 0); }
-
-	Color GetSample(Vector2 InUV) const;
+	UINT32 GetWidth() const { return _Width; }
+	UINT32 GetHeight() const { return _Height; }
+	UINT32 GetSize() const { return _Width * _Height; }
 
 private:
 	void LoadFromFile(FILE* f);
-	void LoadFromFile(FILE* f, std::pair<UINT32, UINT32> start, std::pair<UINT32, UINT32> size);
 
 private:
-	static constexpr BYTE Channel = 4;
+	static constexpr BYTE _Channel = 4;
 	std::vector<Color> _Buffer;
 	UINT32 _Width = 0;
 	UINT32 _Height = 0;
-
 };
 

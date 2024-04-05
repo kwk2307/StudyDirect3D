@@ -101,16 +101,16 @@ namespace WindowsUtil {
 
 #define ISPRESSED(KeyCode) return (::GetKeyState(KeyCode) & 0x8000) != 0
 
-	//void BindInput(InputManager& InInputManager)
-	//{
-	//	InInputManager.SetInputAxis(InputAxis::XAxis, GetXAxisInput);
-	//	InInputManager.SetInputAxis(InputAxis::YAxis, GetYAxisInput);
-	//	InInputManager.SetInputAxis(InputAxis::ZAxis, GetZAxisInput);
-	//	InInputManager.SetInputAxis(InputAxis::WAxis, GetWAxisInput);
-	//	InInputManager.SetInputButton(InputButton::Space, []() { ISPRESSED(VK_SPACE); });
-	//	InInputManager.SetInputButton(InputButton::Z, []() { ISPRESSED(0x5A); });
-	//	InInputManager.SetInputButton(InputButton::X, []() { ISPRESSED(0x58); });
-	//}
+	void BindInput(InputManager& InInputManager)
+	{
+		InInputManager.SetInputAxis(InputAxis::XAxis, GetXAxisInput);
+		InInputManager.SetInputAxis(InputAxis::YAxis, GetYAxisInput);
+		InInputManager.SetInputAxis(InputAxis::ZAxis, GetZAxisInput);
+		InInputManager.SetInputAxis(InputAxis::WAxis, GetWAxisInput);
+		InInputManager.SetInputButton(InputButton::Space, []() { ISPRESSED(VK_SPACE); });
+		InInputManager.SetInputButton(InputButton::Z, []() { ISPRESSED(0x5A); });
+		InInputManager.SetInputButton(InputButton::X, []() { ISPRESSED(0x58); });
+	}
 
 	//void BindSystemInput(SystemInputManager& InSystemInputManager)
 	//{

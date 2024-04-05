@@ -2,37 +2,16 @@
 
 #include <memory>
 #include <functional>
-#include <map>
-#include <windows.h>
-
-#include <filesystem>
-namespace fs = std::filesystem;
-
-#include "Func.h"
-#include "EngineInterface.h"
+#include <unordered_map>
 
 #include "InputManager.h"
+#include "EngineInterface.h"
 
-#include "Mesh.h"
-#include "Texture.h"
 #include "TransformComponent.h"
+#include "Texture.h"
+#include "Mesh.h"
 
-#include "Collider.h"
-
-#include "Animation.h"
-#include "Animator.h"
-
-#include "Object.h"
-#include "Camera.h"
-#include "Player.h"
-
-#include "SceneMngInterface.h"
-#include "CollisionMngInterface.h"
-
-#include "Scene.h"
-
-#include "SceneMng.h"
-#include "CollisionMng.h"
+#include "GameObject.h"
 
 #include "GameEngine.h"
 
