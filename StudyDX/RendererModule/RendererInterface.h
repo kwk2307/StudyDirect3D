@@ -10,10 +10,5 @@ public:
 	virtual void BeginFrame() = 0;
 	virtual void EndFrame() = 0;
 
-	virtual void DrawPoint(const ScreenPoint& InScreenPos, const Color& InColor) = 0;
-	virtual void DrawLine(const Vector4& InStartPos, const Vector4& InEndPos, const Color& InColor) = 0;
-	virtual void DrawFullVerticalLine(int InX, const Color& InColor) = 0;
-	virtual void DrawFullHorizontalLine(int InY, const Color& InColor) = 0;
-
 	//virtual void Update();
 };

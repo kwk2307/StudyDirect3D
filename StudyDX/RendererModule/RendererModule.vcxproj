@@ -104,7 +104,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)MathModule</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)MathModule;$(SolutionDir)EngineModule</AdditionalIncludeDirectories>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
@@ -137,18 +137,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="DXRenderer.h" />
     <ClInclude Include="Precompiled.h" />
     <ClInclude Include="RendererHeaders.h" />
     <ClInclude Include="RendererInterface.h" />
     <ClInclude Include="Vertex.h" />
-    <ClInclude Include="WindowsRenderer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DXRenderer.cpp" />
     <ClCompile Include="Precompiled.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Precompiled.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="WindowsRenderer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
