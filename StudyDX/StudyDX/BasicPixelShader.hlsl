@@ -1,7 +1,8 @@
 #include "Common.hlsli" // 쉐이더에서도 include 사용 가능
 
 Texture2D g_texture0 : register(t0);
-Texture2D g_texture1 : register(t1);
+//Texture2D g_texture1 : register(t1);
+
 SamplerState g_sampler : register(s0);
 
 cbuffer BasicPixelConstantBuffer : register(b0)
@@ -42,5 +43,5 @@ float4 main(PixelShaderInput input) : SV_TARGET
     }
 
     return useTexture ? float4(color, 1.0) * g_texture0.Sample(g_sampler, input.texcoord) : float4(color, 1.0);
-    
+
 }

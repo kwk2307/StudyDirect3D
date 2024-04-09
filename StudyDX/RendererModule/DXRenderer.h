@@ -1,5 +1,25 @@
 #pragma once
 
+// 재질
+struct Material {
+    Vector3 ambient = Vector3(0.1f);  // 12
+    float shininess = 1.0f;           // 4
+    Vector3 diffuse = Vector3(0.5f);  // 12
+    float dummy1;                     // 4
+    Vector3 specular = Vector3(0.5f); // 12
+    float dummy2;                     // 4
+};
+
+// 조명
+struct Light {
+    Vector3 strength = Vector3(1.0f);              // 12
+    float fallOffStart = 0.0f;                     // 4
+    Vector3 direction = Vector3(0.0f, 0.0f, 1.0f); // 12
+    float fallOffEnd = 10.0f;                      // 4
+    Vector3 position = Vector3(0.0f, 0.0f, -2.0f); // 12
+    float spotPower = 1.0f;                        // 4
+};
+
 struct BasicVertexConstantBuffer {
     Matrix model;
     Matrix invTranspose;
@@ -15,8 +35,8 @@ static_assert((sizeof(BasicVertexConstantBuffer) % 16) == 0,
 struct BasicPixelConstantBuffer {
     Vector3 eyeWorld;         // 12
     bool useTexture;          // 4
-    //Material material;        // 48
-    //Light lights[MAX_LIGHTS]; // 48 * MAX_LIGHTS
+    Material material;        // 48
+    Light lights[MAX_LIGHTS]; // 48 * MAX_LIGHTS
 };
 
 static_assert((sizeof(BasicPixelConstantBuffer) % 16) == 0,
@@ -24,6 +44,9 @@ static_assert((sizeof(BasicPixelConstantBuffer) % 16) == 0,
 
 class DXRenderer : public RendererInterface
 {
+public:
+    DXRenderer();
+
 public:
 	virtual bool Init(const ScreenPoint& InSize) override;
     virtual void Shutdown()override;
@@ -142,6 +165,8 @@ private:
     int _GuiWidth = 0;
     HWND _MainWindow;
     UINT _NumQualityLevels = 0;
+
+    Light _Light;
 
     ComPtr<ID3D11VertexShader> _BasicVertexShader;
     ComPtr<ID3D11PixelShader> _BasicPixelShader;

@@ -3,6 +3,17 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+
+DXRenderer::DXRenderer() :
+    _ScreenWidth(1280),
+    _ScreenHeight(960), 
+    _MainWindow(0),
+    _ScreenViewport(D3D11_VIEWPORT()),
+    _BasicPixelConstantBufferData(),
+    _BasicVertexConstantBufferData()
+{
+}
+
 bool DXRenderer::Init(const ScreenPoint& InSize)
 {
     _MainWindow = GetActiveWindow();
@@ -284,36 +295,10 @@ void DXRenderer::BeginFrame()
 
 void DXRenderer::EndFrame()
 {
+    _SwapChain->Present(1, 0);
 }
 
 
-void DXRenderer::OnRenderEvent(std::shared_ptr<Mesh> InMesh)
-{
-    // 버텍스/인덱스 버퍼 설정
-    UINT stride = sizeof(Vertex);
-    UINT offset = 0;
-
-    _Context->VSSetShader(_BasicVertexShader.Get(), 0, 0);
-    _Context->VSSetConstantBuffers(0, 1, InMesh->m_vertexConstantBuffer.GetAddressOf());
-
-    _Context->PSSetShaderResources(0, 1, _Texture->_TextureResourceView.GetAddressOf());
-    _Context->PSSetSamplers(0, 1, _SamplerState.GetAddressOf());
-
-    _Context->PSSetConstantBuffers(
-        0, 1, InMesh->m_pixelConstantBuffer.GetAddressOf());
-    _Context->PSSetShader(_BasicPixelShader.Get(), 0, 0);
-
-    _Context->RSSetState(_SolidRasterizerSate.Get());
-
-    _Context->IASetInputLayout(_BasicInputLayout.Get());
-    _Context->IASetVertexBuffers(
-        0, 1, InMesh->m_vertexBuffer.GetAddressOf(), &stride,&offset);
-    _Context->IASetIndexBuffer(InMesh->m_indexBuffer.Get(),
-        DXGI_FORMAT_R16_UINT, 0);
-    _Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-
-    _Context->DrawIndexed(InMesh->m_indexCount, 0, 0);
-}
 
 void DXRenderer::SetViewport()
 {
@@ -397,6 +382,7 @@ bool DXRenderer::CreateDepthBuffer()
     }
     return true;
 }
+
 
 void CheckResult(HRESULT hr, ID3DBlob* errorBlob) {
     if (FAILED(hr)) {
@@ -554,8 +540,13 @@ void DXRenderer::OnUpdateEvnet(std::shared_ptr<Mesh> InMesh, const Matrix& InTra
     _BasicVertexConstantBufferData.invTranspose.Translation(Vector3(0.0f));
     _BasicVertexConstantBufferData.invTranspose = _BasicVertexConstantBufferData.invTranspose.Transpose().Invert();
 
+    
     //뷰
     _BasicVertexConstantBufferData.view = InView;
+    
+    _BasicPixelConstantBufferData.eyeWorld = Vector3::Transform(
+        Vector3(0.0f), _BasicVertexConstantBufferData.view.Invert());
+
     _BasicVertexConstantBufferData.view = _BasicVertexConstantBufferData.view.Transpose();
 
     // 프로젝션
@@ -564,4 +555,53 @@ void DXRenderer::OnUpdateEvnet(std::shared_ptr<Mesh> InMesh, const Matrix& InTra
 
     UpdateBuffer(_BasicVertexConstantBufferData,
         InMesh->m_vertexConstantBuffer);
+
+    _BasicPixelConstantBufferData.useTexture = false;
+
+    _BasicPixelConstantBufferData.material.diffuse = Vector3(0.7f);
+    _BasicPixelConstantBufferData.material.specular = Vector3(0.2f);
+
+    // 여러 개 조명 사용 예시
+    for (int i = 0; i < MAX_LIGHTS; i++) {
+        // 다른 조명 끄기
+        if (i != 0) {
+            _BasicPixelConstantBufferData.lights[i].strength *= 0.0f;
+        }
+        else {
+
+            _BasicPixelConstantBufferData.lights[i] = _Light;
+        }
+    }
+    UpdateBuffer(_BasicPixelConstantBufferData,
+        InMesh->m_pixelConstantBuffer);
+}
+void DXRenderer::OnRenderEvent(std::shared_ptr<Mesh> InMesh)
+{
+    // 버텍스/인덱스 버퍼 설정
+    UINT stride = sizeof(Vertex);
+    UINT offset = 0;
+
+    _Context->VSSetShader(_BasicVertexShader.Get(), 0, 0);
+    _Context->VSSetConstantBuffers(0, 1, InMesh->m_vertexConstantBuffer.GetAddressOf());
+
+    _Context->PSSetShaderResources(0, 1, _Texture->_TextureResourceView.GetAddressOf());
+    _Context->PSSetSamplers(0, 1, _SamplerState.GetAddressOf());
+
+    _Context->PSSetShader(_BasicPixelShader.Get(), 0, 0);
+    _Context->PSSetConstantBuffers(
+        0, 1, InMesh->m_pixelConstantBuffer.GetAddressOf());
+
+    _Context->RSSetState(_SolidRasterizerSate.Get());
+
+    _Context->IASetInputLayout(_BasicInputLayout.Get());
+
+    _Context->IASetVertexBuffers(
+        0, 1, InMesh->m_vertexBuffer.GetAddressOf(), &stride, &offset);
+
+    _Context->IASetIndexBuffer(InMesh->m_indexBuffer.Get(),
+        DXGI_FORMAT_R16_UINT, 0);
+
+    _Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+    _Context->DrawIndexed(InMesh->m_indexCount, 0, 0);
 }

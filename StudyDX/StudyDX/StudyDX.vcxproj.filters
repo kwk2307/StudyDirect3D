@@ -64,4 +64,11 @@
       <Filter>리소스 파일</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="BasicPixelShader.hlsl" />
+    <FxCompile Include="BasicVertexShader.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Common.hlsli" />
+  </ItemGroup>
 </Project>

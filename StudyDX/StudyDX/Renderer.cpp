@@ -151,13 +151,11 @@ void Renderer::PostUpdate()
 void Renderer::Update(float InDeltaSeconds)
 { 
 	auto& g = GetGameEngine();
+
+	g.GetCamera().GetTransform().SetLocalPosition(Vector3(0, 0, -2));
+
 	for (auto iter = g.SceneBegin(); iter != g.SceneEnd(); ++iter) {
 		GameObject obj = *(*iter);
-		obj.Update(InDeltaSeconds);
-
-		if (!obj.HasMesh() || !obj.IsVisible()) {
-			continue;
-		}
 		obj.Update(InDeltaSeconds);
 	}
 }
@@ -186,7 +184,7 @@ void Renderer::LoadScene()
 {
 	auto& g = GetGameEngine();
 	
-	CreateObject("Player", GameEngine::PlaneMesh, Transform(Vector3(0, 0, -100)));
+	CreateObject("Player", GameEngine::BoxMesh, Transform(Vector3(0, 0, 0)));
 
 }
 
@@ -196,12 +194,14 @@ void Renderer::CreateObject(const std::string& InName, const std::size_t& InMesh
 	auto& r = GetRenderer();
 
 	GameObject& go = g.CreateNewGameObject(InName);
+	
 	go.GetTransform().SetWorldTransform(InTransform);
+
 	if (InMeshKey != NULL) {
 
-		const MeshData& MD = g.GetMesh(InMeshKey);
+		const MeshData& meshData = g.GetMesh(InMeshKey);
 
-		go.SetMesh(r.CreateMesh(MD));
+		go.SetMesh(r.CreateMesh(meshData));
 		
 		go._OnUpdateFunc = [this,&go]() {
 			GetRenderer().OnUpdateEvnet(

@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 
-const std::size_t GameEngine::PlaneMesh = std::hash<std::string>()("SM_Plane");
+const std::size_t GameEngine::RectangleMesh = std::hash<std::string>()("SM_Rectangle");
+const std::size_t GameEngine::BoxMesh = std::hash<std::string>()("SM_Box");
 
 struct GameObjectCompare
 {
@@ -59,15 +60,19 @@ MeshData& GameEngine::CreateMesh(const std::size_t& InKey)
 
 bool GameEngine::LoadResources()
 {
-	MeshData& plane = CreateMesh(GameEngine::PlaneMesh);
-	
-	auto& v = plane.GetVertices();
-	auto& i = plane.GetIndices();
-	
+	MeshData& rectangle = CreateMesh(GameEngine::RectangleMesh);
+	auto& v = rectangle.GetVertices();
+	auto& i = rectangle.GetIndices();
 	v = MeshData::MakeSquare().GetVertices();
 	i = MeshData::MakeSquare().GetIndices();
-	
-	plane.SetMeshType(MeshType::Normal);
+	rectangle.SetMeshType(MeshType::Normal);
+
+	MeshData& box = CreateMesh(GameEngine::BoxMesh);
+	auto& v1 = box.GetVertices();
+	auto& i1 = box.GetIndices();
+	v1 = MeshData::MakeBox().GetVertices();
+	i1 = MeshData::MakeBox().GetIndices();
+	box.SetMeshType(MeshType::Normal);
 
 	return true;
 }

@@ -9,7 +9,7 @@ MeshData MeshData::MakeSquare()
     vector<Vector3> normals;
     vector<Vector2> texcoords; // ÅØ½ºÃç ÁÂÇ¥
 
-    const float scale = 100.0f;
+    const float scale = 1.f;
 
     // ¾Õ¸é
     positions.push_back(Vector3(-1.0f, 1.0f, 0.0f) * scale);
@@ -58,7 +58,7 @@ MeshData MeshData::MakeBox()
     vector<Vector3> normals;
     vector<Vector2> texcoords; // ÅØ½ºÃç ÁÂÇ¥
 
-    const float scale = 1.0f;
+    const float scale = 1.f;
 
     // À­¸é
     positions.push_back(Vector3(-1.0f, 1.0f, -1.0f) * scale);

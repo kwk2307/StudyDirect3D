@@ -35,7 +35,9 @@ private:
 	bool LoadResources();
 
 public:
-	static const std::size_t PlaneMesh;
+	static const std::size_t RectangleMesh;
+	static const std::size_t BoxMesh;
+
 private:
 	bool _IsInitialized = false;
 	ScreenPoint _ScreenSize;

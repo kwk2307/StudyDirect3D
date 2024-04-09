@@ -35,7 +35,7 @@ public:
 private:
 	TransformComponent _Transform;
 
-	bool _UsePerspectiveProjection = true;
+	bool _UsePerspectiveProjection = false;
 
 	float _FOV = 60.f;
 	float _NearZ = 5.5f;
