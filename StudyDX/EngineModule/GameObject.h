@@ -1,5 +1,13 @@
 #pragma once
 
+enum class GameObjectType : UINT32
+{
+	Normal = 0,
+	Gizmo
+};
+
+struct Mesh;
+
 class GameObject
 {
 public:
@@ -21,9 +29,9 @@ public:
 	void SetParent(GameObject& InGameObject) { _Transform.SetParent(InGameObject.GetTransform()); }
 
 	// 메시
-	void SetMesh(const std::size_t& InMeshKey) { _MeshKey = InMeshKey; }
-	bool HasMesh() const { return _MeshKey != MathUtil::InvalidHash; }
-	FORCEINLINE std::size_t GetMeshKey() const { return _MeshKey; }
+	void SetMesh(std::shared_ptr<Mesh> InMesh) { _Mesh = InMesh; }
+	bool HasMesh() const { return _Mesh != nullptr; }
+	std::shared_ptr<Mesh> GetMesh() { return _Mesh; }
 
 	// 색상
 	void SetColor(const Color& InColor) { _Color = InColor; }
@@ -43,12 +51,21 @@ public:
 	bool IsVisible() const { return _IsVisible; }
 	void SetVisible(bool InVisible) { _IsVisible = InVisible; }
 
+	void Update(float InDeltaSeconds);
+	void Render();
+	
+public:
+	std::function<void()> _OnUpdateFunc;
+	std::function<void()> _OnRenderFunc;
+
 private:
 	GameObjectType _GameObjectType = GameObjectType::Normal;
 	bool _IsVisible = true;
 	std::size_t _Hash = MathUtil::InvalidHash;
 	std::string _Name;
-	std::size_t _MeshKey = MathUtil::InvalidHash;
+	
+	std::shared_ptr<Mesh> _Mesh;
+
 	TransformComponent _Transform;
 	Color _Color;
 	//Color _Color = Color::Error;

@@ -41,11 +41,8 @@ bool ExampleApp::Initialize() {
     MeshData meshData = GeometryGenerator::MakeSquare();
 
     // MeshData meshData = GeometryGenerator::MakeGrid(2.0f, 1.7f, 5, 5);
-
     // MeshData meshData = GeometryGenerator::MakeBox();
-
     // MeshData meshData = GeometryGenerator::MakeCylinder(2.0f, 2.0f, 2, 30);
-
     // MeshData meshData = GeometryGenerator::MakeSphere(2.0f, 5, 5);
 
     //meshData = GeometryGenerator::SubdivideToSphere(2.f, meshData);
@@ -58,19 +55,13 @@ bool ExampleApp::Initialize() {
     m_mesh->m_indexCount = UINT(meshData.indices.size());
     AppBase::CreateIndexBuffer(meshData.indices, m_mesh->m_indexBuffer);
 
-    // ConstantBuffer 만들기
-    m_BasicVertexConstantBufferData.model = Matrix();
-    m_BasicVertexConstantBufferData.view = Matrix();
-    m_BasicVertexConstantBufferData.projection = Matrix();
-
     AppBase::CreateConstantBuffer(m_BasicVertexConstantBufferData,
                                   m_mesh->m_vertexConstantBuffer);
 
     AppBase::CreateConstantBuffer(m_BasicPixelConstantBufferData,
                                   m_mesh->m_pixelConstantBuffer);
 
-    // POSITION에 float3를 보낼 경우 내부적으로 마지막에 1을 덧붙여서 float4를
-    // 만듭니다.
+    // POSITION에 float3를 보낼 경우 내부적으로 마지막에 1을 덧붙여서 float4를 만듭니다.
     // https://learn.microsoft.com/en-us/windows-hardware/drivers/display/supplying-default-values-for-texture-coordinates-in-vertex-declaration
     vector<D3D11_INPUT_ELEMENT_DESC> basicInputElements = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
@@ -166,6 +157,7 @@ void ExampleApp::Update(float dt) {
         m_BasicVertexConstantBufferData.projection.Transpose();
 
     // Constant를 CPU에서 GPU로 복사
+    //
     AppBase::UpdateBuffer(m_BasicVertexConstantBufferData,
                           m_mesh->m_vertexConstantBuffer);
 
@@ -231,6 +223,7 @@ void ExampleApp::Render() {
 
     ID3D11ShaderResourceView *pixelResources[2] = {
         m_textureResourceView.Get(), m_textureResourceView2.Get()};
+
     m_context->PSSetShaderResources(0, 2, pixelResources);
     m_context->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
 
@@ -247,6 +240,7 @@ void ExampleApp::Render() {
     // 버텍스/인덱스 버퍼 설정
     UINT stride = sizeof(Vertex);
     UINT offset = 0;
+
     m_context->IASetInputLayout(m_basicInputLayout.Get());
     m_context->IASetVertexBuffers(0, 1, m_mesh->m_vertexBuffer.GetAddressOf(),
                                   &stride, &offset);
@@ -265,6 +259,7 @@ void ExampleApp::Render() {
 
         m_context->PSSetShader(m_normalPixelShader.Get(), 0, 0);
         // m_context->IASetInputLayout(m_basicInputLayout.Get());
+
         m_context->IASetVertexBuffers(
             0, 1, m_normalLines->m_vertexBuffer.GetAddressOf(), &stride,
             &offset);

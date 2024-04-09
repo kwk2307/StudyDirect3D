@@ -115,7 +115,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\MathModule.lib</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -138,10 +138,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="DXRenderer.h" />
+    <ClInclude Include="Mesh.h" />
     <ClInclude Include="Precompiled.h" />
     <ClInclude Include="RendererHeaders.h" />
     <ClInclude Include="RendererInterface.h" />
-    <ClInclude Include="Vertex.h" />
+    <ClInclude Include="Texture.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DXRenderer.cpp" />

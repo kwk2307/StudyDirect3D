@@ -71,7 +71,8 @@ private: // 트랜스폼에 관련된 변수
 
 inline Matrix Transform::GetMatrix() const
 {
-	return Matrix::CreateScale(Scale) *
+	return 
+		Matrix::CreateScale(Scale) *
 		Matrix::CreateFromQuaternion(Rotation) *
 		Matrix::CreateTranslation(Position);
 }

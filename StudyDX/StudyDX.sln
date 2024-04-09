@@ -4,10 +4,18 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.7.34031.279
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StudyDX", "StudyDX\StudyDX.vcxproj", "{52DECBEC-4359-4B7D-B798-ACEA09966FFD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BB091E02-F2DE-48B1-B098-1B2E364A1286} = {BB091E02-F2DE-48B1-B098-1B2E364A1286}
+		{C79A16AE-D8EE-4FB2-BF1F-EFA146C11E1E} = {C79A16AE-D8EE-4FB2-BF1F-EFA146C11E1E}
+		{E3A8E33E-BEBA-4FC1-A422-BA05CFE67CB2} = {E3A8E33E-BEBA-4FC1-A422-BA05CFE67CB2}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MathModule", "MathModule\MathModule.vcxproj", "{E3A8E33E-BEBA-4FC1-A422-BA05CFE67CB2}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RendererModule", "RendererModule\RendererModule.vcxproj", "{C79A16AE-D8EE-4FB2-BF1F-EFA146C11E1E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E3A8E33E-BEBA-4FC1-A422-BA05CFE67CB2} = {E3A8E33E-BEBA-4FC1-A422-BA05CFE67CB2}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EngineModule", "EngineModule\EngineModule.vcxproj", "{BB091E02-F2DE-48B1-B098-1B2E364A1286}"
 EndProject

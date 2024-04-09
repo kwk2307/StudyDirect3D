@@ -58,6 +58,7 @@ void Renderer::OnTick()
 			_GameEngineInitialized = GetGameEngine().Init();
 			if (!_GameEngineInitialized)
 			{
+			
 				assert(false);
 				return;
 			}
@@ -69,6 +70,10 @@ void Renderer::OnTick()
 		_AllInitialized = _RendererInitialized && _PerformanceCheckInitialized && _GameEngineInitialized;
 		if (_AllInitialized)
 		{
+			GetRenderer()._GetObjectFunc = [this](const std::string& InName) -> GameObject& {
+				return  GetGameEngine().GetGameObject(InName);
+				};
+			
 			_TickEnabled = true;
 		}
 	}
@@ -83,6 +88,7 @@ void Renderer::OnTick()
 			// 게임 엔진 교체로 함수 리셋 진행
 			if (!_AllInitialized)
 			{
+				GetRenderer()._GetObjectFunc = nullptr;
 				//GetSystemInput().UpdateSystemInput();
 				return;
 			}
@@ -101,7 +107,7 @@ void Renderer::OnResize(const ScreenPoint& InNewScreenSize)
 	_ScreenSize = InNewScreenSize;
 
 	if (_RendererInitialized) {
-		GetRenderer().Init(InNewScreenSize);
+		GetRenderer().OnReSize(InNewScreenSize);
 	}
 	if (_GameEngineInitialized) {
 		GetGameEngine().OnScreenResize(InNewScreenSize);
@@ -128,7 +134,6 @@ void Renderer::PreUpdate()
 
 void Renderer::PostUpdate()
 {
-
 	// 렌더링 마무리.
 	GetRenderer().EndFrame();
 
@@ -144,8 +149,17 @@ void Renderer::PostUpdate()
 }
 
 void Renderer::Update(float InDeltaSeconds)
-{
-	GetGameEngine().Update(InDeltaSeconds);   
+{ 
+	auto& g = GetGameEngine();
+	for (auto iter = g.SceneBegin(); iter != g.SceneEnd(); ++iter) {
+		GameObject obj = *(*iter);
+		obj.Update(InDeltaSeconds);
+
+		if (!obj.HasMesh() || !obj.IsVisible()) {
+			continue;
+		}
+		obj.Update(InDeltaSeconds);
+	}
 }
 
 void Renderer::LateUpdate(float InDeltaSeconds)
@@ -154,8 +168,52 @@ void Renderer::LateUpdate(float InDeltaSeconds)
 
 void Renderer::Render()
 {
+	auto& g = GetGameEngine();
+	auto& r = GetRenderer();
+	
+	r.Render();
+
+	for (auto iter = g.SceneBegin(); iter != g.SceneEnd(); ++iter) {
+		GameObject obj = *(*iter);
+		if (!obj.HasMesh() || !obj.IsVisible()) {
+			continue;
+		}
+		obj.Render();
+	}
 }
 
 void Renderer::LoadScene()
 {
+	auto& g = GetGameEngine();
+	
+	CreateObject("Player", GameEngine::PlaneMesh, Transform(Vector3(0, 0, -100)));
+
+}
+
+void Renderer::CreateObject(const std::string& InName, const std::size_t& InMeshKey, const Transform& InTransform)
+{
+	auto& g = GetGameEngine();
+	auto& r = GetRenderer();
+
+	GameObject& go = g.CreateNewGameObject(InName);
+	go.GetTransform().SetWorldTransform(InTransform);
+	if (InMeshKey != NULL) {
+
+		const MeshData& MD = g.GetMesh(InMeshKey);
+
+		go.SetMesh(r.CreateMesh(MD));
+		
+		go._OnUpdateFunc = [this,&go]() {
+			GetRenderer().OnUpdateEvnet(
+				go.GetMesh(),
+				go.GetTransform().GetLocalMatrix(), 
+				GetGameEngine().GetCamera().GetViewMatrix(), 
+				GetGameEngine().GetCamera().GetPerspectiveMatrix());
+			};
+			
+		go._OnRenderFunc = [this,&go]() {
+			GetRenderer().OnRenderEvent(go.GetMesh());
+			};
+	}
+
 }

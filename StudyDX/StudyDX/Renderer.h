@@ -31,6 +31,8 @@ private:
 
 	void LoadScene();
 
+	void CreateObject(const std::string& InName, const std::size_t& InMeshKey, const Transform& InTransform);
+
 	RendererInterface& GetRenderer() { return *_RSIPtr.get(); }
 
 private:
@@ -56,9 +58,9 @@ private:
 
 	ScreenPoint _ScreenSize;
 
+	CameraObject _MainCamera;
+
 	std::unique_ptr<RendererInterface> _RSIPtr;
 	std::unique_ptr<EngineInterface> _ENIPtr;
-
-
 };
 

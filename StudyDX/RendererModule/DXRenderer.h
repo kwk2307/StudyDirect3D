@@ -1,30 +1,57 @@
 #pragma once
+
+struct BasicVertexConstantBuffer {
+    Matrix model;
+    Matrix invTranspose;
+    Matrix view;
+    Matrix projection;
+};
+
+static_assert((sizeof(BasicVertexConstantBuffer) % 16) == 0,
+    "Constant Buffer size must be 16-byte aligned");
+
+#define MAX_LIGHTS 3
+
+struct BasicPixelConstantBuffer {
+    Vector3 eyeWorld;         // 12
+    bool useTexture;          // 4
+    //Material material;        // 48
+    //Light lights[MAX_LIGHTS]; // 48 * MAX_LIGHTS
+};
+
+static_assert((sizeof(BasicPixelConstantBuffer) % 16) == 0,
+    "Constant Buffer size must be 16-byte aligned");
+
 class DXRenderer : public RendererInterface
 {
 public:
 	virtual bool Init(const ScreenPoint& InSize) override;
     virtual void Shutdown()override;
-	virtual bool IsInitialized() const override;
+    virtual bool IsInitialized() const override { return _Initailized; }
+
+    virtual bool OnReSize(const ScreenPoint& InSize) override;
 
 	virtual void Clear(const Color& InClearColor) override;
 	virtual void BeginFrame() override;
 	virtual void EndFrame() override;
+
+    virtual std::shared_ptr<Mesh> CreateMesh(const MeshData& InMeshData) override;
+
+    virtual void OnUpdateEvnet(std::shared_ptr<Mesh> InMesh, const Matrix& InTransform, const Matrix& InView, const Matrix& InProj) override;
+    virtual void OnRenderEvent(std::shared_ptr<Mesh> InMesh) override;
+
+    virtual void Render() override;
 private:
     void SetViewport();
-    
     bool CreateRenderTargetView();
-    
     bool CreateDepthBuffer();
-
     void CreateVertexShaderAndInputLayout(
         const std::wstring& filename,
         const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputElements,
         ComPtr<ID3D11VertexShader>& vertexShader,
         ComPtr<ID3D11InputLayout>& inputLayout);
-
     void CreatePixelShader(const std::wstring& filename,
         ComPtr<ID3D11PixelShader>& pixelShader);
-    
     void CreateIndexBuffer(const std::vector<uint16_t>& indices,
         ComPtr<ID3D11Buffer>& m_indexBuffer);
 
@@ -49,7 +76,7 @@ private:
         vertexBufferData.SysMemPitch = 0;
         vertexBufferData.SysMemSlicePitch = 0;
 
-        const HRESULT hr = m_device->CreateBuffer(
+        const HRESULT hr = _Device->CreateBuffer(
             &bufferDesc, &vertexBufferData, vertexBuffer.GetAddressOf());
         if (FAILED(hr)) {
             std::cout << "CreateBuffer() failed. " << std::hex << hr
@@ -80,7 +107,7 @@ private:
         initData.SysMemPitch = 0;
         initData.SysMemSlicePitch = 0;
 
-        auto hr = m_device->CreateBuffer(&cbDesc, &initData,
+        auto hr = _Device->CreateBuffer(&cbDesc, &initData,
             constantBuffer.GetAddressOf());
         if (FAILED(hr)) {
             std::cout << "CreateConstantBuffer() CreateBuffer failed()."
@@ -97,24 +124,34 @@ private:
         }
 
         D3D11_MAPPED_SUBRESOURCE ms;
-        m_context->Map(buffer.Get(), NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+        _Context->Map(buffer.Get(), NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
         memcpy(ms.pData, &bufferData, sizeof(bufferData));
-        m_context->Unmap(buffer.Get(), NULL);
+        _Context->Unmap(buffer.Get(), NULL);
     }
 
     void CreateTexture(
-        const std::string filename,ComPtr<ID3D11Texture2D>& texture,
+        const std::string filename,
+        ComPtr<ID3D11Texture2D>& texture,
         ComPtr<ID3D11ShaderResourceView>& textureResourceView);
 
 private:
-    // 변수 이름 붙이는 규칙은 VS DX11/12 기본 템플릿을 따릅니다.
-    // 다만 변수 이름을 줄이기 위해 d3d는 생략했습니다.
-    // 예: m_d3dDevice -> m_device
+    bool _Initailized =false;
+
     int _ScreenWidth; // 렌더링할 최종 화면의 해상도
     int _ScreenHeight;
     int _GuiWidth = 0;
     HWND _MainWindow;
     UINT _NumQualityLevels = 0;
+
+    ComPtr<ID3D11VertexShader> _BasicVertexShader;
+    ComPtr<ID3D11PixelShader> _BasicPixelShader;
+    ComPtr<ID3D11InputLayout> _BasicInputLayout;
+
+    std::shared_ptr<Texture> _Texture;
+    ComPtr<ID3D11SamplerState> _SamplerState;
+
+    BasicVertexConstantBuffer _BasicVertexConstantBufferData;
+    BasicPixelConstantBuffer _BasicPixelConstantBufferData;
 
     ComPtr<ID3D11Device> _Device;
     ComPtr<ID3D11DeviceContext> _Context;
@@ -131,6 +168,5 @@ private:
     ComPtr<ID3D11DepthStencilState> _DepthStencilState;
 
     D3D11_VIEWPORT _ScreenViewport;
-
 };
 

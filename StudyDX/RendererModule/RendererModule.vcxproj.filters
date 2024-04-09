@@ -24,10 +24,13 @@
     <ClInclude Include="RendererInterface.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Vertex.h">
+    <ClInclude Include="DXRenderer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="DXRenderer.h">
+    <ClInclude Include="Mesh.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

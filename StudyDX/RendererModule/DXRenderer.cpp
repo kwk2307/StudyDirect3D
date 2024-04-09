@@ -1,5 +1,8 @@
 #include "Precompiled.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 bool DXRenderer::Init(const ScreenPoint& InSize)
 {
     _MainWindow = GetActiveWindow();
@@ -7,6 +10,8 @@ bool DXRenderer::Init(const ScreenPoint& InSize)
     if (_MainWindow == 0) {
         return false;
     }
+
+    OnReSize(InSize);
 
     const D3D_DRIVER_TYPE driverType = D3D_DRIVER_TYPE_HARDWARE;
 
@@ -131,7 +136,7 @@ bool DXRenderer::Init(const ScreenPoint& InSize)
     // 참고: IDXGIFactory를 이용한 CreateSwapChain()
     /*
     ComPtr<IDXGIDevice3> dxgiDevice;
-    m_device.As(&dxgiDevice);
+    _Device.As(&dxgiDevice);
 
     ComPtr<IDXGIAdapter> dxgiAdapter;
     dxgiDevice->GetAdapter(&dxgiAdapter);
@@ -140,7 +145,7 @@ bool DXRenderer::Init(const ScreenPoint& InSize)
     dxgiAdapter->GetParent(IID_PPV_ARGS(&dxgiFactory));
 
     ComPtr<IDXGISwapChain> swapChain;
-    dxgiFactory->CreateSwapChain(m_device.Get(), &sd, &swapChain);
+    dxgiFactory->CreateSwapChain(_Device.Get(), &sd, &swapChain);
 
     swapChain.As(&m_swapChain);
     */
@@ -165,7 +170,7 @@ bool DXRenderer::Init(const ScreenPoint& InSize)
     DXGI_SCALING_NONE; swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
 
     ComPtr<IDXGISwapChain1> swapChain;
-    dxgiFactory->CreateSwapChainForHwnd(m_device.Get(), m_mainWindow,
+    dxgiFactory->CreateSwapChainForHwnd(_Device.Get(), m_mainWindow,
     &swapChainDesc, nullptr, nullptr, swapChain.GetAddressOf());
     */
 
@@ -204,8 +209,110 @@ bool DXRenderer::Init(const ScreenPoint& InSize)
         &depthStencilDesc, _DepthStencilState.GetAddressOf()))) {
         cout << "CreateDepthStencilState() failed." << endl;
     }
+    
+    _Texture = std::make_shared<Texture>();
 
+    CreateTexture("ojwD8.jpg", _Texture.get()->_Texture2D, _Texture.get()->_TextureResourceView);
+
+    // Texture sampler 만들기
+    D3D11_SAMPLER_DESC sampDesc;
+    ZeroMemory(&sampDesc, sizeof(sampDesc));
+    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    sampDesc.MinLOD = 0;
+    sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+    // Create the Sample State
+    _Device->CreateSamplerState(&sampDesc, _SamplerState.GetAddressOf());
+    
+    // POSITION에 float3를 보낼 경우 내부적으로 마지막에 1을 덧붙여서 float4를 만듭니다.
+    // https://learn.microsoft.com/en-us/windows-hardware/drivers/display/supplying-default-values-for-texture-coordinates-in-vertex-declaration
+    std::vector<D3D11_INPUT_ELEMENT_DESC> basicInputElements = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
+         D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 4 * 3,
+         D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 4 * 3 + 4 * 3,
+         D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
+
+    CreateVertexShaderAndInputLayout(
+        L"BasicVertexShader.hlsl", basicInputElements, _BasicVertexShader,
+        _BasicInputLayout);
+
+    CreatePixelShader(L"BasicPixelShader.hlsl", _BasicPixelShader);
+
+    _Initailized = true;
     return true;
+}
+
+void DXRenderer::Shutdown()
+{
+
+}
+
+bool DXRenderer::OnReSize(const ScreenPoint& InSize)
+{
+    _ScreenWidth = InSize.X;
+    _ScreenHeight = InSize.Y;
+    _GuiWidth = 0;
+
+    if (_SwapChain) {
+        _RenderTargetView.Reset();
+        _SwapChain->ResizeBuffers(0, // 현재 개수 유지
+            InSize.X, // 해상도 변경
+            InSize.Y,
+            DXGI_FORMAT_UNKNOWN, // 현재 포맷 유지
+            0);
+        CreateRenderTargetView();
+        CreateDepthBuffer();
+        SetViewport();
+    }
+    return true;
+}
+
+void DXRenderer::Clear(const Color& InClearColor)
+{
+}
+
+void DXRenderer::BeginFrame()
+{
+}
+
+void DXRenderer::EndFrame()
+{
+}
+
+
+void DXRenderer::OnRenderEvent(std::shared_ptr<Mesh> InMesh)
+{
+    // 버텍스/인덱스 버퍼 설정
+    UINT stride = sizeof(Vertex);
+    UINT offset = 0;
+
+    _Context->VSSetShader(_BasicVertexShader.Get(), 0, 0);
+    _Context->VSSetConstantBuffers(0, 1, InMesh->m_vertexConstantBuffer.GetAddressOf());
+
+    _Context->PSSetShaderResources(0, 1, _Texture->_TextureResourceView.GetAddressOf());
+    _Context->PSSetSamplers(0, 1, _SamplerState.GetAddressOf());
+
+    _Context->PSSetConstantBuffers(
+        0, 1, InMesh->m_pixelConstantBuffer.GetAddressOf());
+    _Context->PSSetShader(_BasicPixelShader.Get(), 0, 0);
+
+    _Context->RSSetState(_SolidRasterizerSate.Get());
+
+    _Context->IASetInputLayout(_BasicInputLayout.Get());
+    _Context->IASetVertexBuffers(
+        0, 1, InMesh->m_vertexBuffer.GetAddressOf(), &stride,&offset);
+    _Context->IASetIndexBuffer(InMesh->m_indexBuffer.Get(),
+        DXGI_FORMAT_R16_UINT, 0);
+    _Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+    _Context->DrawIndexed(InMesh->m_indexCount, 0, 0);
 }
 
 void DXRenderer::SetViewport()
@@ -228,6 +335,20 @@ void DXRenderer::SetViewport()
 
         _Context->RSSetViewports(1, &_ScreenViewport);
     }
+}
+
+void DXRenderer::Render()
+{
+    SetViewport();
+
+    float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    _Context->ClearRenderTargetView(_RenderTargetView.Get(), clearColor);
+    _Context->ClearDepthStencilView(_DepthStencilView.Get(),
+        D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+        1.0f, 0);
+    _Context->OMSetRenderTargets(1, _RenderTargetView.GetAddressOf(),
+        _DepthStencilView.Get());
+    _Context->OMSetDepthStencilState(_DepthStencilState.Get(), 0);
 }
 
 bool DXRenderer::CreateRenderTargetView()
@@ -271,10 +392,10 @@ bool DXRenderer::CreateDepthBuffer()
         &depthStencilBufferDesc, 0, _DepthStencilBuffer.GetAddressOf()))) {
         std::cout << "CreateTexture2D() failed." << std::endl;
     }
-    if (FAILED(_Device->CreateDepthStencilView(_DepthStencilBuffer.Get(), 0,
-        &_DepthStencilView))) {
+    if (FAILED(_Device->CreateDepthStencilView(_DepthStencilBuffer.Get(), 0,&_DepthStencilView))) {
         std::cout << "CreateDepthStencilView() failed." << std::endl;
     }
+    return true;
 }
 
 void CheckResult(HRESULT hr, ID3DBlob* errorBlob) {
@@ -324,8 +445,6 @@ void DXRenderer::CreateVertexShaderAndInputLayout(
         shaderBlob->GetBufferSize(), &inputLayout);
 }
 
-
-
 void DXRenderer::CreatePixelShader(const std::wstring& filename, ComPtr<ID3D11PixelShader>& pixelShader)
 {
     ComPtr<ID3DBlob> shaderBlob;
@@ -367,9 +486,9 @@ void DXRenderer::CreateIndexBuffer(const std::vector<uint16_t>& indices, ComPtr<
         m_indexBuffer.GetAddressOf());
 }
 
-
 void DXRenderer::CreateTexture(
-    const std::string filename, ComPtr<ID3D11Texture2D>& texture,
+    const std::string filename, 
+    ComPtr<ID3D11Texture2D>& texture,
     ComPtr<ID3D11ShaderResourceView>& textureResourceView)
 {
     int width, height, channels;
@@ -407,4 +526,42 @@ void DXRenderer::CreateTexture(
     _Device->CreateTexture2D(&txtDesc, &InitData, texture.GetAddressOf());
     _Device->CreateShaderResourceView(texture.Get(), nullptr,
         textureResourceView.GetAddressOf());
+}
+
+std::shared_ptr<Mesh>  DXRenderer::CreateMesh(const MeshData& InMeshData)
+{
+    std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
+
+    CreateVertexBuffer(InMeshData.GetVertices(), mesh->m_vertexBuffer);
+    mesh->m_indexCount = UINT(InMeshData.GetIndices().size());
+    CreateIndexBuffer(InMeshData.GetIndices(), mesh->m_indexBuffer);
+
+    CreateConstantBuffer(_BasicVertexConstantBufferData,
+        mesh->m_vertexConstantBuffer);
+
+    CreateConstantBuffer(_BasicPixelConstantBufferData,
+        mesh->m_pixelConstantBuffer);
+
+    return mesh;
+}
+
+void DXRenderer::OnUpdateEvnet(std::shared_ptr<Mesh> InMesh, const Matrix& InTransform,const Matrix& InView,const Matrix& InProj )
+{
+    _BasicVertexConstantBufferData.model = InTransform;
+    _BasicVertexConstantBufferData.model = _BasicVertexConstantBufferData.model.Transpose();
+
+    _BasicVertexConstantBufferData.invTranspose = _BasicVertexConstantBufferData.model;
+    _BasicVertexConstantBufferData.invTranspose.Translation(Vector3(0.0f));
+    _BasicVertexConstantBufferData.invTranspose = _BasicVertexConstantBufferData.invTranspose.Transpose().Invert();
+
+    //뷰
+    _BasicVertexConstantBufferData.view = InView;
+    _BasicVertexConstantBufferData.view = _BasicVertexConstantBufferData.view.Transpose();
+
+    // 프로젝션
+    _BasicVertexConstantBufferData.projection = InProj;
+    _BasicVertexConstantBufferData.projection = _BasicVertexConstantBufferData.projection.Transpose();
+
+    UpdateBuffer(_BasicVertexConstantBufferData,
+        InMesh->m_vertexConstantBuffer);
 }
