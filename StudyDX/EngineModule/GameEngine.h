@@ -37,6 +37,7 @@ private:
 public:
 	static const std::size_t RectangleMesh;
 	static const std::size_t BoxMesh;
+	static const std::size_t SphereMesh;
 
 private:
 	bool _IsInitialized = false;

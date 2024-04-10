@@ -35,11 +35,11 @@ public:
 private:
 	TransformComponent _Transform;
 
-	bool _UsePerspectiveProjection = false;
+	bool _UsePerspectiveProjection = true;
 
 	float _FOV = 60.f;
-	float _NearZ = 5.5f;
-	float _FarZ = 5000.f;
+	float _NearZ = 0.1f;
+	float _FarZ = 100.f;
 	ScreenPoint _ViewportSize;
 };
 
@@ -73,6 +73,6 @@ inline Matrix CameraObject::GetPerspectiveViewMatrix() const
 inline Matrix CameraObject::GetViewMatrix() const
 {
 	return
-		Matrix::CreateTranslation(_Transform.GetLocalPosition()) *
-		Matrix::CreateFromQuaternion(_Transform.GetLocalRotation());
+		(Matrix::CreateFromQuaternion(_Transform.GetLocalRotation()) *
+			Matrix::CreateTranslation(_Transform.GetLocalPosition())).Invert();
 }

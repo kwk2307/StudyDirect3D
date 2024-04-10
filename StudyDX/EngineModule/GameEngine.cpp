@@ -2,6 +2,7 @@
 
 const std::size_t GameEngine::RectangleMesh = std::hash<std::string>()("SM_Rectangle");
 const std::size_t GameEngine::BoxMesh = std::hash<std::string>()("SM_Box");
+const std::size_t GameEngine::SphereMesh = std::hash<std::string>() ("SM_Sphere");
 
 struct GameObjectCompare
 {
@@ -74,6 +75,13 @@ bool GameEngine::LoadResources()
 	i1 = MeshData::MakeBox().GetIndices();
 	box.SetMeshType(MeshType::Normal);
 
+	MeshData& sphere = CreateMesh(GameEngine::SphereMesh);
+	auto& v2 = sphere.GetVertices();
+	auto& i2 = sphere.GetIndices();
+	v2 = MeshData::MakeSphere(1.f, 10, 10).GetVertices();
+	i2 = MeshData::MakeSphere(1.f, 10, 10).GetIndices();
+	sphere.SetMeshType(MeshType::Normal);
+
 	return true;
 }
 
@@ -111,5 +119,5 @@ void GameEngine::OnScreenResize(const ScreenPoint& InScreenSize)
 {
 	// 화면 크기의 설정
 	_ScreenSize = InScreenSize;
-	//_MainCamera.SetViewportSize(_ScreenSize);
+	_MainCamera.SetViewportSize(_ScreenSize);
 }

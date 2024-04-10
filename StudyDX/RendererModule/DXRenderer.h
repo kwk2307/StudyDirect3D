@@ -168,6 +168,8 @@ private:
 
     Light _Light;
 
+    std::shared_ptr<Mesh> _TestMesh;
+
     ComPtr<ID3D11VertexShader> _BasicVertexShader;
     ComPtr<ID3D11PixelShader> _BasicPixelShader;
     ComPtr<ID3D11InputLayout> _BasicInputLayout;

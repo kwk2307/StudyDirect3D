@@ -187,7 +187,17 @@ bool DXRenderer::Init(const ScreenPoint& InSize)
 
     CreateRenderTargetView();
 
-    SetViewport();
+    // Set the viewport
+    ZeroMemory(&_ScreenViewport, sizeof(D3D11_VIEWPORT));
+    _ScreenViewport.TopLeftX = 0;
+    _ScreenViewport.TopLeftY = 0;
+    _ScreenViewport.Width = float(_ScreenWidth);
+    _ScreenViewport.Height = float(_ScreenHeight);
+    // m_screenViewport.Width = static_cast<float>(m_screenHeight);
+    _ScreenViewport.MinDepth = 0.0f;
+    _ScreenViewport.MaxDepth = 1.0f; // Note: important for depth buffering
+
+    _Context->RSSetViewports(1, &_ScreenViewport);
 
     // Create a rasterizer state
     D3D11_RASTERIZER_DESC rastDesc;
@@ -197,12 +207,10 @@ bool DXRenderer::Init(const ScreenPoint& InSize)
     rastDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
     rastDesc.FrontCounterClockwise = false;
     rastDesc.DepthClipEnable = true; // <- zNear, zFar 확인에 필요
-
     _Device->CreateRasterizerState(&rastDesc,
         _SolidRasterizerSate.GetAddressOf());
 
     rastDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME;
-
     _Device->CreateRasterizerState(&rastDesc,
         _WireRasterizerSate.GetAddressOf());
 
@@ -222,7 +230,6 @@ bool DXRenderer::Init(const ScreenPoint& InSize)
     }
     
     _Texture = std::make_shared<Texture>();
-
     CreateTexture("ojwD8.jpg", _Texture.get()->_Texture2D, _Texture.get()->_TextureResourceView);
 
     // Texture sampler 만들기
@@ -255,6 +262,9 @@ bool DXRenderer::Init(const ScreenPoint& InSize)
         _BasicInputLayout);
 
     CreatePixelShader(L"BasicPixelShader.hlsl", _BasicPixelShader);
+
+    //테스트용 메시 
+     _TestMesh = CreateMesh(MeshData::MakeBox());
 
     _Initailized = true;
     return true;
@@ -322,6 +332,7 @@ void DXRenderer::SetViewport()
     }
 }
 
+
 void DXRenderer::Render()
 {
     SetViewport();
@@ -334,8 +345,9 @@ void DXRenderer::Render()
     _Context->OMSetRenderTargets(1, _RenderTargetView.GetAddressOf(),
         _DepthStencilView.Get());
     _Context->OMSetDepthStencilState(_DepthStencilState.Get(), 0);
-}
 
+
+}
 bool DXRenderer::CreateRenderTargetView()
 {
     ComPtr<ID3D11Texture2D> backBuffer;
@@ -351,7 +363,6 @@ bool DXRenderer::CreateRenderTargetView()
 
     return true;
 }
-
 bool DXRenderer::CreateDepthBuffer()
 {
     D3D11_TEXTURE2D_DESC depthStencilBufferDesc;
@@ -382,8 +393,6 @@ bool DXRenderer::CreateDepthBuffer()
     }
     return true;
 }
-
-
 void CheckResult(HRESULT hr, ID3DBlob* errorBlob) {
     if (FAILED(hr)) {
         // 파일이 없을 경우
@@ -538,26 +547,25 @@ void DXRenderer::OnUpdateEvnet(std::shared_ptr<Mesh> InMesh, const Matrix& InTra
 
     _BasicVertexConstantBufferData.invTranspose = _BasicVertexConstantBufferData.model;
     _BasicVertexConstantBufferData.invTranspose.Translation(Vector3(0.0f));
-    _BasicVertexConstantBufferData.invTranspose = _BasicVertexConstantBufferData.invTranspose.Transpose().Invert();
+    _BasicVertexConstantBufferData.invTranspose = 
+     _BasicVertexConstantBufferData.invTranspose.Transpose().Invert();
 
-    
     //뷰
     _BasicVertexConstantBufferData.view = InView;
-    
     _BasicPixelConstantBufferData.eyeWorld = Vector3::Transform(
         Vector3(0.0f), _BasicVertexConstantBufferData.view.Invert());
-
     _BasicVertexConstantBufferData.view = _BasicVertexConstantBufferData.view.Transpose();
 
     // 프로젝션
     _BasicVertexConstantBufferData.projection = InProj;
-    _BasicVertexConstantBufferData.projection = _BasicVertexConstantBufferData.projection.Transpose();
+    _BasicVertexConstantBufferData.projection =
+      _BasicVertexConstantBufferData.projection.Transpose();
 
+    // Constant를 CPU에서 GPU로 복사
     UpdateBuffer(_BasicVertexConstantBufferData,
         InMesh->m_vertexConstantBuffer);
 
-    _BasicPixelConstantBufferData.useTexture = false;
-
+    _BasicPixelConstantBufferData.useTexture = true;
     _BasicPixelConstantBufferData.material.diffuse = Vector3(0.7f);
     _BasicPixelConstantBufferData.material.specular = Vector3(0.2f);
 
@@ -574,34 +582,33 @@ void DXRenderer::OnUpdateEvnet(std::shared_ptr<Mesh> InMesh, const Matrix& InTra
     }
     UpdateBuffer(_BasicPixelConstantBufferData,
         InMesh->m_pixelConstantBuffer);
+
 }
+
 void DXRenderer::OnRenderEvent(std::shared_ptr<Mesh> InMesh)
 {
+    _Context->VSSetShader(_BasicVertexShader.Get(), 0, 0);
+    _Context->VSSetConstantBuffers(
+        0, 1, InMesh->m_vertexConstantBuffer.GetAddressOf());
+    _Context->PSSetShaderResources(0, 1, _Texture->_TextureResourceView.GetAddressOf());
+    _Context->PSSetSamplers(0, 1, _SamplerState.GetAddressOf());
+
+    _Context->PSSetConstantBuffers(
+        0, 1, InMesh->m_pixelConstantBuffer.GetAddressOf());
+    _Context->PSSetShader(_BasicPixelShader.Get(), 0, 0);
+
+    _Context->RSSetState(_SolidRasterizerSate.Get());
+
     // 버텍스/인덱스 버퍼 설정
     UINT stride = sizeof(Vertex);
     UINT offset = 0;
 
-    _Context->VSSetShader(_BasicVertexShader.Get(), 0, 0);
-    _Context->VSSetConstantBuffers(0, 1, InMesh->m_vertexConstantBuffer.GetAddressOf());
-
-    _Context->PSSetShaderResources(0, 1, _Texture->_TextureResourceView.GetAddressOf());
-    _Context->PSSetSamplers(0, 1, _SamplerState.GetAddressOf());
-
-    _Context->PSSetShader(_BasicPixelShader.Get(), 0, 0);
-    _Context->PSSetConstantBuffers(
-        0, 1, InMesh->m_pixelConstantBuffer.GetAddressOf());
-
-    _Context->RSSetState(_SolidRasterizerSate.Get());
-
     _Context->IASetInputLayout(_BasicInputLayout.Get());
-
-    _Context->IASetVertexBuffers(
-        0, 1, InMesh->m_vertexBuffer.GetAddressOf(), &stride, &offset);
-
+    _Context->IASetVertexBuffers(0, 1, InMesh->m_vertexBuffer.GetAddressOf(),
+        &stride, &offset);
     _Context->IASetIndexBuffer(InMesh->m_indexBuffer.Get(),
         DXGI_FORMAT_R16_UINT, 0);
-
-    _Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-
+    _Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     _Context->DrawIndexed(InMesh->m_indexCount, 0, 0);
+
 }

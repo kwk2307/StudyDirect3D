@@ -184,8 +184,7 @@ void Renderer::LoadScene()
 {
 	auto& g = GetGameEngine();
 	
-	CreateObject("Player", GameEngine::BoxMesh, Transform(Vector3(0, 0, 0)));
-
+	CreateObject("BOX", GameEngine::BoxMesh, Transform(Vector3(0.f,0.f,0.f), Quaternion(), Vector3(0.3f)));
 }
 
 void Renderer::CreateObject(const std::string& InName, const std::size_t& InMeshKey, const Transform& InTransform)
@@ -195,7 +194,7 @@ void Renderer::CreateObject(const std::string& InName, const std::size_t& InMesh
 
 	GameObject& go = g.CreateNewGameObject(InName);
 	
-	go.GetTransform().SetWorldTransform(InTransform);
+	go.GetTransform().SetLocalTransform(InTransform);
 
 	if (InMeshKey != NULL) {
 
