@@ -63,7 +63,6 @@ public:
     virtual void OnUpdateEvnet(std::shared_ptr<Mesh> InMesh, const Matrix& InTransform, const Matrix& InView, const Matrix& InProj) override;
     virtual void OnRenderEvent(std::shared_ptr<Mesh> InMesh) override;
 
-    virtual void Render() override;
 private:
     void SetViewport();
     bool CreateRenderTargetView();
@@ -158,7 +157,8 @@ private:
         ComPtr<ID3D11ShaderResourceView>& textureResourceView);
 
 private:
-    bool _Initailized =false;
+    bool _Initailized = false;
+    bool _FirstObject = true;
 
     int _ScreenWidth; // 렌더링할 최종 화면의 해상도
     int _ScreenHeight;
@@ -167,9 +167,7 @@ private:
     UINT _NumQualityLevels = 0;
 
     Light _Light;
-
-    std::shared_ptr<Mesh> _TestMesh;
-
+ 
     ComPtr<ID3D11VertexShader> _BasicVertexShader;
     ComPtr<ID3D11PixelShader> _BasicPixelShader;
     ComPtr<ID3D11InputLayout> _BasicInputLayout;

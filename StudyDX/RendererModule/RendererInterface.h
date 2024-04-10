@@ -21,5 +21,4 @@ public:
 
 	std::function<GameObject& (const std::string& InName)> _GetObjectFunc;
 	
-	virtual void Render() = 0;
 };

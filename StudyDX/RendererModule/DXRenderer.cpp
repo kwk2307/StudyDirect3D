@@ -263,9 +263,6 @@ bool DXRenderer::Init(const ScreenPoint& InSize)
 
     CreatePixelShader(L"BasicPixelShader.hlsl", _BasicPixelShader);
 
-    //테스트용 메시 
-     _TestMesh = CreateMesh(MeshData::MakeBox());
-
     _Initailized = true;
     return true;
 }
@@ -301,14 +298,13 @@ void DXRenderer::Clear(const Color& InClearColor)
 
 void DXRenderer::BeginFrame()
 {
+    _FirstObject = true;
 }
 
 void DXRenderer::EndFrame()
 {
     _SwapChain->Present(1, 0);
 }
-
-
 
 void DXRenderer::SetViewport()
 {
@@ -332,22 +328,6 @@ void DXRenderer::SetViewport()
     }
 }
 
-
-void DXRenderer::Render()
-{
-    SetViewport();
-
-    float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-    _Context->ClearRenderTargetView(_RenderTargetView.Get(), clearColor);
-    _Context->ClearDepthStencilView(_DepthStencilView.Get(),
-        D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
-        1.0f, 0);
-    _Context->OMSetRenderTargets(1, _RenderTargetView.GetAddressOf(),
-        _DepthStencilView.Get());
-    _Context->OMSetDepthStencilState(_DepthStencilState.Get(), 0);
-
-
-}
 bool DXRenderer::CreateRenderTargetView()
 {
     ComPtr<ID3D11Texture2D> backBuffer;
@@ -587,6 +567,21 @@ void DXRenderer::OnUpdateEvnet(std::shared_ptr<Mesh> InMesh, const Matrix& InTra
 
 void DXRenderer::OnRenderEvent(std::shared_ptr<Mesh> InMesh)
 {
+    if (_FirstObject) {
+        SetViewport();
+
+        float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+        _Context->ClearRenderTargetView(_RenderTargetView.Get(), clearColor);
+        _Context->ClearDepthStencilView(_DepthStencilView.Get(),
+            D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+            1.0f, 0);
+        _Context->OMSetRenderTargets(1, _RenderTargetView.GetAddressOf(),
+            _DepthStencilView.Get());
+        _Context->OMSetDepthStencilState(_DepthStencilState.Get(), 0);
+
+        _FirstObject = false;
+    }
+
     _Context->VSSetShader(_BasicVertexShader.Get(), 0, 0);
     _Context->VSSetConstantBuffers(
         0, 1, InMesh->m_vertexConstantBuffer.GetAddressOf());

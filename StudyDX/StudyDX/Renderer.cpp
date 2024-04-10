@@ -169,8 +169,6 @@ void Renderer::Render()
 	auto& g = GetGameEngine();
 	auto& r = GetRenderer();
 	
-	r.Render();
-
 	for (auto iter = g.SceneBegin(); iter != g.SceneEnd(); ++iter) {
 		GameObject obj = *(*iter);
 		if (!obj.HasMesh() || !obj.IsVisible()) {
@@ -183,8 +181,7 @@ void Renderer::Render()
 void Renderer::LoadScene()
 {
 	auto& g = GetGameEngine();
-	
-	CreateObject("BOX", GameEngine::BoxMesh, Transform(Vector3(0.f,0.f,0.f), Quaternion(), Vector3(0.3f)));
+	CreateObject("Sphere", GameEngine::SphereMesh, Transform(Vector3(0.f,0.f,0.f), Quaternion(), Vector3(0.7f)));
 }
 
 void Renderer::CreateObject(const std::string& InName, const std::size_t& InMeshKey, const Transform& InTransform)
