@@ -55,6 +55,7 @@ GameObject& GameEngine::CreateNewGameObject(const std::string& InName)
 MeshData& GameEngine::CreateMesh(const std::size_t& InKey)
 {
 	auto meshPtr = std::make_unique<MeshData>();
+
 	_Meshes.insert({ InKey, std::move(meshPtr) });
 	return *_Meshes.at(InKey).get();
 }
@@ -78,8 +79,8 @@ bool GameEngine::LoadResources()
 	MeshData& sphere = CreateMesh(GameEngine::SphereMesh);
 	auto& v2 = sphere.GetVertices();
 	auto& i2 = sphere.GetIndices();
-	v2 = MeshData::MakeSphere(1.f, 10, 10).GetVertices();
-	i2 = MeshData::MakeSphere(1.f, 10, 10).GetIndices();
+	v2 = MeshData::MakeSphere(1.f, 20, 20).GetVertices();
+	i2 = MeshData::MakeSphere(1.f, 20, 20).GetIndices();
 	sphere.SetMeshType(MeshType::Normal);
 
 	return true;

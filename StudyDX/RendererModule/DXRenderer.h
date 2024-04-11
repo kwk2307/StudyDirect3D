@@ -58,7 +58,7 @@ public:
 	virtual void BeginFrame() override;
 	virtual void EndFrame() override;
 
-    virtual std::shared_ptr<Mesh> CreateMesh(const MeshData& InMeshData) override;
+    virtual std::shared_ptr<Mesh> CreateMesh(const std::vector<Vertex>& InVertices, const std::vector<std::uint32_t> InIndices) override;
 
     virtual void OnUpdateEvnet(std::shared_ptr<Mesh> InMesh, const Matrix& InTransform, const Matrix& InView, const Matrix& InProj) override;
     virtual void OnRenderEvent(std::shared_ptr<Mesh> InMesh) override;
@@ -67,14 +67,17 @@ private:
     void SetViewport();
     bool CreateRenderTargetView();
     bool CreateDepthBuffer();
+
     void CreateVertexShaderAndInputLayout(
         const std::wstring& filename,
         const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputElements,
         ComPtr<ID3D11VertexShader>& vertexShader,
         ComPtr<ID3D11InputLayout>& inputLayout);
+
     void CreatePixelShader(const std::wstring& filename,
         ComPtr<ID3D11PixelShader>& pixelShader);
-    void CreateIndexBuffer(const std::vector<uint16_t>& indices,
+
+    void CreateIndexBuffer(const std::vector<uint32_t>& indices,
         ComPtr<ID3D11Buffer>& m_indexBuffer);
 
     template <typename T_VERTEX>

@@ -6,12 +6,6 @@ enum class MeshType : UINT32
 	Skinned
 };
 
-struct Vertex {
-	Vector3 position;
-	Vector3 normal;
-	Vector2 texcoord;
-};
-
 class MeshData
 {
 public:
@@ -20,8 +14,13 @@ public:
 	void SetMeshType(const MeshType& _InMeshType) { _MeshType = _InMeshType; }
 	std::vector<Vertex>& GetVertices() { return _Vertices; }
 	const std::vector<Vertex>& GetVertices() const { return _Vertices; }
-	std::vector<uint16_t>& GetIndices() { return _Indices; }
-	const std::vector<uint16_t>& GetIndices() const { return _Indices; }
+	std::vector<uint32_t>& GetIndices() { return _Indices; }
+	const std::vector<uint32_t>& GetIndices() const { return _Indices; }
+
+	std::string& GetTexture() { return _TextureFilename; }
+	const std::string& GetTexture() const { return _TextureFilename; }
+
+	static std::vector<MeshData> ReadFromFile(std::string INbasePath, std::string Infilename);
 
 	static MeshData MakeSquare();
 	static MeshData MakeBox();
@@ -36,8 +35,9 @@ public:
 
 private:
 	std::vector<Vertex> _Vertices;
-	std::vector<uint16_t> _Indices;
+	std::vector<uint32_t> _Indices;
 
+	std::string _TextureFilename;
 private:
 	MeshType _MeshType = MeshType::Normal;
 

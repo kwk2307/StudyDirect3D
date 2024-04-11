@@ -2,6 +2,11 @@
 
 using std::vector;
 
+std::vector<MeshData> MeshData::ReadFromFile(std::string INbasePath, std::string Infilename)
+{
+    return std::vector<MeshData>();
+}
+
 MeshData MeshData::MakeSquare()
 {
     vector<Vector3> positions;
@@ -197,7 +202,7 @@ MeshData MeshData::MakeGrid(const float width, const float height, const int num
     MeshData meshData;
 
     vector<Vertex>& _Vertices = meshData._Vertices;
-    vector<uint16_t>& _Indices = meshData._Indices;
+    vector<uint32_t>& _Indices = meshData._Indices;
 
     //// y = -0.5f * height 인 점들
     // Vector3 stackStartPoint = Vector3(-0.5f * width, -0.5f * height, 0.0f);
@@ -273,7 +278,7 @@ MeshData MeshData::MakeCylinder(const float bottomRadius, const float topRadius,
     MeshData meshData;
 
     vector<Vertex>& _Vertices = meshData._Vertices;
-    vector<uint16_t>& _Indices = meshData._Indices;
+    vector<uint32_t>& _Indices = meshData._Indices;
 
     for (int i = 0; i <= sliceCount; ++i) {
         Vertex v;
@@ -327,7 +332,7 @@ MeshData MeshData::MakeSphere(const float radius, const int numSlices, const int
     MeshData meshData;
 
     vector<Vertex>& _Vertices = meshData._Vertices;
-    vector<uint16_t>& _Indices = meshData._Indices;
+    vector<uint32_t>& _Indices = meshData._Indices;
 
     for (int j = 0; j <= numStacks; ++j) {
         for (int i = 0; i <= numSlices; i++) {
@@ -394,7 +399,7 @@ MeshData MeshData::SubdivideToSphere(const float radius, MeshData meshData)
         };
 
     MeshData newMesh;
-    uint16_t count = 0;
+    uint32_t count = 0;
 
     for (size_t i = 0; i < meshData._Indices.size(); i += 3) {
         size_t i0 = meshData._Indices[i];
@@ -442,7 +447,7 @@ MeshData MeshData::SubdivideToSphere(const float radius, MeshData meshData)
         newMesh._Vertices.push_back(v2);
 
         //인덱스 업데이트
-        for (uint16_t j = 0; j < 12; j++) {
+        for (uint32_t j = 0; j < 12; j++) {
             newMesh._Indices.push_back(j + count);
         }
         count += 12;

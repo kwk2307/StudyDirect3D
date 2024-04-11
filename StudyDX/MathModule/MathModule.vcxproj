@@ -135,6 +135,7 @@
     <ClInclude Include="Rotator.h" />
     <ClInclude Include="ScreenPoint.h" />
     <ClInclude Include="Transform.h" />
+    <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MathUtil.cpp" />

@@ -70,10 +70,7 @@ void Renderer::OnTick()
 		_AllInitialized = _RendererInitialized && _PerformanceCheckInitialized && _GameEngineInitialized;
 		if (_AllInitialized)
 		{
-			GetRenderer()._GetObjectFunc = [this](const std::string& InName) -> GameObject& {
-				return  GetGameEngine().GetGameObject(InName);
-				};
-			
+		
 			_TickEnabled = true;
 		}
 	}
@@ -88,7 +85,6 @@ void Renderer::OnTick()
 			// 게임 엔진 교체로 함수 리셋 진행
 			if (!_AllInitialized)
 			{
-				GetRenderer()._GetObjectFunc = nullptr;
 				//GetSystemInput().UpdateSystemInput();
 				return;
 			}
@@ -197,7 +193,7 @@ void Renderer::CreateObject(const std::string& InName, const std::size_t& InMesh
 
 		const MeshData& meshData = g.GetMesh(InMeshKey);
 
-		go.SetMesh(r.CreateMesh(meshData));
+		go.SetMesh(r.CreateMesh(meshData.GetVertices(), meshData.GetIndices()));
 		
 		go._OnUpdateFunc = [this,&go]() {
 			GetRenderer().OnUpdateEvnet(

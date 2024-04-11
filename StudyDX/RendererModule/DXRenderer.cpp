@@ -306,6 +306,7 @@ void DXRenderer::EndFrame()
     _SwapChain->Present(1, 0);
 }
 
+
 void DXRenderer::SetViewport()
 {
     static int previousGuiWidth = _GuiWidth;
@@ -443,14 +444,14 @@ void DXRenderer::CreatePixelShader(const std::wstring& filename, ComPtr<ID3D11Pi
         &pixelShader);
 }
 
-void DXRenderer::CreateIndexBuffer(const std::vector<uint16_t>& indices, ComPtr<ID3D11Buffer>& m_indexBuffer)
+void DXRenderer::CreateIndexBuffer(const std::vector<uint32_t>& indices, ComPtr<ID3D11Buffer>& m_indexBuffer)
 {
     D3D11_BUFFER_DESC bufferDesc = {};
     bufferDesc.Usage = D3D11_USAGE_IMMUTABLE; // 초기화 후 변경X
-    bufferDesc.ByteWidth = UINT(sizeof(uint16_t) * indices.size());
+    bufferDesc.ByteWidth = UINT(sizeof(uint32_t) * indices.size());
     bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
     bufferDesc.CPUAccessFlags = 0; // 0 if no CPU access is necessary.
-    bufferDesc.StructureByteStride = sizeof(uint16_t);
+    bufferDesc.StructureByteStride = sizeof(uint32_t);
 
     D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
     indexBufferData.pSysMem = indices.data();
@@ -503,13 +504,14 @@ void DXRenderer::CreateTexture(
         textureResourceView.GetAddressOf());
 }
 
-std::shared_ptr<Mesh>  DXRenderer::CreateMesh(const MeshData& InMeshData)
+std::shared_ptr<Mesh> DXRenderer::CreateMesh(const std::vector<Vertex>& InVertices, const std::vector<std::uint32_t> InIndices)
 {
     std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
 
-    CreateVertexBuffer(InMeshData.GetVertices(), mesh->m_vertexBuffer);
-    mesh->m_indexCount = UINT(InMeshData.GetIndices().size());
-    CreateIndexBuffer(InMeshData.GetIndices(), mesh->m_indexBuffer);
+    CreateVertexBuffer(InVertices, mesh->m_vertexBuffer);
+    mesh->m_indexCount = UINT(InIndices.size());
+
+    CreateIndexBuffer(InIndices, mesh->m_indexBuffer);
 
     CreateConstantBuffer(_BasicVertexConstantBufferData,
         mesh->m_vertexConstantBuffer);
@@ -602,7 +604,7 @@ void DXRenderer::OnRenderEvent(std::shared_ptr<Mesh> InMesh)
     _Context->IASetVertexBuffers(0, 1, InMesh->m_vertexBuffer.GetAddressOf(),
         &stride, &offset);
     _Context->IASetIndexBuffer(InMesh->m_indexBuffer.Get(),
-        DXGI_FORMAT_R16_UINT, 0);
+        DXGI_FORMAT_R32_UINT, 0);
     _Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     _Context->DrawIndexed(InMesh->m_indexCount, 0, 0);
 

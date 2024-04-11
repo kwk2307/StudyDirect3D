@@ -141,6 +141,7 @@
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="MeshData.h" />
+    <ClInclude Include="modelLoader.h" />
     <ClInclude Include="TransformComponent.h" />
     <ClInclude Include="Precompiled.h" />
   </ItemGroup>
@@ -150,6 +151,7 @@
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="MeshData.cpp" />
+    <ClCompile Include="modelLoader.cpp" />
     <ClCompile Include="Precompiled.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Precompiled.h</PrecompiledHeaderFile>

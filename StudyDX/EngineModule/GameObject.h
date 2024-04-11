@@ -33,6 +33,8 @@ public:
 	bool HasMesh() const { return _Mesh != nullptr; }
 	std::shared_ptr<Mesh> GetMesh() { return _Mesh; }
 
+
+
 	// »ö»ó
 	void SetColor(const Color& InColor) { _Color = InColor; }
 	FORCEINLINE const Color& GetColor() const { return _Color; }

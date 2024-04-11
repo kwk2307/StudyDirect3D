@@ -24,4 +24,5 @@ using namespace DirectX::SimpleMath;
 #include "Rotator.h"
 #include "Transform.h"
 
+#include "Vertex.h"
 
