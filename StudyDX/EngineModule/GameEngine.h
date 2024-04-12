@@ -21,11 +21,14 @@ public:
 	virtual CameraObject& GetCamera() { return _MainCamera; }
 
 	//리소스 관리 
-	MeshData& CreateMesh(const std::size_t& InKey);
+	std::vector<std::shared_ptr<MeshData>>& CreateMesh(const std::size_t& InKey);
+	std::vector<std::shared_ptr<MeshData>>& CreateMesh(const std::size_t& InKey, const MeshData& InMesh);
 
 	// 메시
-	virtual MeshData& GetMesh(const std::size_t& InMeshKey) override { return *_Meshes.at(InMeshKey).get(); }
-
+	virtual const std::vector<std::shared_ptr<MeshData>>& GetMesh(const std::size_t& InMeshKey) const {
+		return _Meshes.at(InMeshKey);
+	}
+	
 	// 카메라 
 	FORCEINLINE CameraObject& GetMainCamera() { return _MainCamera; }
 	FORCEINLINE const CameraObject& GetMainCamera() const { return _MainCamera; }
@@ -45,8 +48,7 @@ private:
 	InputManager _InputManager;
 
 	std::vector<std::unique_ptr<GameObject>> _Scene;
-
-	std::unordered_map<std::size_t, std::unique_ptr<MeshData>> _Meshes;
+	std::unordered_map<std::size_t, std::vector<std::shared_ptr<MeshData>>> _Meshes;
 
 	CameraObject _MainCamera;
 };

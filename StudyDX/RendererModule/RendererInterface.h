@@ -14,9 +14,9 @@ public:
 	virtual void BeginFrame() = 0;
 	virtual void EndFrame() = 0;
 
-	virtual std::shared_ptr<Mesh> CreateMesh(const std::vector<Vertex>& InVertices, const std::vector<std::uint32_t> InIndices) = 0;
+	virtual void CreateMesh(const std::size_t& InMeshkey, const std::vector<Vertex>& InVertices, const std::vector<std::uint32_t> InIndices, const std::string InFileName) = 0;
 
-	virtual void OnUpdateEvnet(std::shared_ptr<Mesh> InMesh, const Matrix& InTransform, const Matrix& InView, const Matrix& InProj) = 0;
-	virtual void OnRenderEvent(std::shared_ptr<Mesh> InMesh) = 0;
+	//virtual void OnUpdateEvnet(std::shared_ptr<Mesh> InMesh, const Matrix& InTransform, const Matrix& InView, const Matrix& InProj) = 0;
+	virtual void OnRenderEvent(const std::size_t& InMeshKey, const Matrix& InTransform, const Matrix& InView, const Matrix& InProj) = 0;
 
 };

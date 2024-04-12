@@ -2,6 +2,8 @@
 #include "Renderer.h"
 
 
+
+
 Renderer::Renderer(RendererInterface* RI, EngineInterface* EI):
 	_ENIPtr(EI),_RSIPtr(RI)
 {
@@ -55,22 +57,22 @@ void Renderer::OnTick()
 				_InputBindingFunc(input);
 			}
 
+			GetGameEngine()._OnCreateMesh =
+				[this](const std::size_t& InMeshKey, std::vector<Vertex> InVertices, std::vector<uint32_t> InIndices, std::string InTextureFilename) {
+				GetRenderer().CreateMesh(InMeshKey, InVertices, InIndices, InTextureFilename);
+				};
 			_GameEngineInitialized = GetGameEngine().Init();
 			if (!_GameEngineInitialized)
 			{
-			
 				assert(false);
 				return;
 			}
-			
 			LoadScene();
-
 		}
 
 		_AllInitialized = _RendererInitialized && _PerformanceCheckInitialized && _GameEngineInitialized;
 		if (_AllInitialized)
 		{
-		
 			_TickEnabled = true;
 		}
 	}
@@ -80,11 +82,28 @@ void Renderer::OnTick()
 
 		if (_TickEnabled)
 		{
+			ImGui_ImplDX11_NewFrame(); // GUI 프레임 시작
+			ImGui_ImplWin32_NewFrame();
+
+			ImGui::NewFrame(); // 어떤 것들을 렌더링 할지 기록 시작
+			ImGui::Begin("Scene Control");
+
+			// ImGui가 측정해주는 Framerate 출력
+			ImGui::Text("Average %.3f ms/frame (%.1f FPS)",
+				1000.0f / ImGui::GetIO().Framerate,
+				ImGui::GetIO().Framerate);
+
+			UpdateGUI(); // 추가적으로 사용할 GUI
+		
+			ImGui::End();
+			ImGui::Render(); // 렌더링할 것들 기록 끝
+
 			PreUpdate();
 
 			// 게임 엔진 교체로 함수 리셋 진행
 			if (!_AllInitialized)
 			{
+				GetGameEngine()._OnCreateMesh = nullptr;
 				//GetSystemInput().UpdateSystemInput();
 				return;
 			}
@@ -92,6 +111,8 @@ void Renderer::OnTick()
 			Update(_FrameTime / 1000.f);
 			LateUpdate(_FrameTime / 1000.f);
 			Render();
+
+			ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData()); // GUI 렌더링
 
 			PostUpdate();
 		}
@@ -123,9 +144,9 @@ void Renderer::PreUpdate()
 	{
 		_StartTimeStamp = _FrameTimeStamp;
 	}
+	GetRenderer().BeginFrame();
 	// 배경 지우기.
 	GetRenderer().Clear(_BackgroundColor);
-
 }
 
 void Renderer::PostUpdate()
@@ -174,10 +195,61 @@ void Renderer::Render()
 	}
 }
 
+void Renderer::UpdateGUI()
+{
+
+	//ImGui::Checkbox("Use Texture", &m_BasicPixelConstantBufferData.useTexture);
+	//ImGui::Checkbox("Wireframe", &m_drawAsWire);
+	//ImGui::Checkbox("Draw Normals", &m_drawNormals);
+	//if (ImGui::SliderFloat("Normal scale",
+	//	&m_normalVertexConstantBufferData.scale, 0.0f,
+	//	1.0f)) {
+	//	m_drawNormalsDirtyFlag = true;
+	//}
+	//ImGui::SliderFloat3("m_modelTranslation", &m_modelTranslation.x, -2.0f,
+	//	2.0f);
+	//ImGui::SliderFloat3("m_modelRotation", &m_modelRotation.x, -3.14f, 3.14f);
+	//ImGui::SliderFloat3("m_modelScaling", &m_modelScaling.x, 0.1f, 2.0f);
+	//ImGui::SliderFloat3("m_viewRot", &m_viewRot.x, -3.14f, 3.14f);
+
+	//ImGui::SliderFloat("Material Shininess",
+	//	&m_BasicPixelConstantBufferData.material.shininess, 1.0f,
+	//	256.0f);
+
+	//if (ImGui::RadioButton("Directional Light", m_lightType == 0)) {
+	//	m_lightType = 0;
+	//}
+	//ImGui::SameLine();
+	//if (ImGui::RadioButton("Point Light", m_lightType == 1)) {
+	//	m_lightType = 1;
+	//}
+	//ImGui::SameLine();
+	//if (ImGui::RadioButton("Spot Light", m_lightType == 2)) {
+	//	m_lightType = 2;
+	//}
+
+	//ImGui::SliderFloat("Material Diffuse", &m_materialDiffuse, 0.0f, 1.0f);
+	//ImGui::SliderFloat("Material Specular", &m_materialSpecular, 0.0f, 1.0f);
+
+	//ImGui::SliderFloat3("Light Position", &m_lightFromGUI.position.x, -5.0f,
+	//	5.0f);
+
+	//ImGui::SliderFloat("Light fallOffStart", &m_lightFromGUI.fallOffStart, 0.0f,
+	//	5.0f);
+
+	//ImGui::SliderFloat("Light fallOffEnd", &m_lightFromGUI.fallOffEnd, 0.0f,
+	//	10.0f);
+
+	//ImGui::SliderFloat("Light spotPower", &m_lightFromGUI.spotPower, 1.0f,
+	//	512.0f);
+}
+
 void Renderer::LoadScene()
 {
 	auto& g = GetGameEngine();
-	CreateObject("Sphere", GameEngine::SphereMesh, Transform(Vector3(0.f,0.f,0.f), Quaternion(), Vector3(0.7f)));
+	CreateObject("Box", std::hash<std::string>() ("zelda"), Transform(Vector3(-0.5f, 0.f, 0.f), Quaternion(), Vector3(1.f)));
+
+	CreateObject("Box2", std::hash<std::string>() ("zelda"), Transform(Vector3(0.5f, 0.f, 0.f), Quaternion(), Vector3(1.f)));
 }
 
 void Renderer::CreateObject(const std::string& InName, const std::size_t& InMeshKey, const Transform& InTransform)
@@ -186,26 +258,22 @@ void Renderer::CreateObject(const std::string& InName, const std::size_t& InMesh
 	auto& r = GetRenderer();
 
 	GameObject& go = g.CreateNewGameObject(InName);
-	
 	go.GetTransform().SetLocalTransform(InTransform);
 
 	if (InMeshKey != NULL) {
-
-		const MeshData& meshData = g.GetMesh(InMeshKey);
-
-		go.SetMesh(r.CreateMesh(meshData.GetVertices(), meshData.GetIndices()));
+		go.SetMesh(InMeshKey);
 		
 		go._OnUpdateFunc = [this,&go]() {
-			GetRenderer().OnUpdateEvnet(
-				go.GetMesh(),
-				go.GetTransform().GetLocalMatrix(), 
-				GetGameEngine().GetCamera().GetViewMatrix(), 
-				GetGameEngine().GetCamera().GetPerspectiveMatrix());
+
 			};
 			
 		go._OnRenderFunc = [this,&go]() {
-			GetRenderer().OnRenderEvent(go.GetMesh());
+			GetRenderer().OnRenderEvent(
+				go.GetMeshKey(),
+				go.GetTransform().GetLocalMatrix(),
+				GetGameEngine().GetCamera().GetViewMatrix(),
+				GetGameEngine().GetCamera().GetPerspectiveMatrix()
+			);
 			};
 	}
-
 }

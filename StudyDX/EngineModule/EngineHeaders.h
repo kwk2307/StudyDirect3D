@@ -7,8 +7,11 @@
 #include "InputManager.h"
 
 #include "TransformComponent.h"
+
 #include "MeshData.h"
 #include "modelLoader.h"
+#include "GeometryGenerator.h"
+
 
 #include "GameObject.h"
 #include "CameraObject.h"

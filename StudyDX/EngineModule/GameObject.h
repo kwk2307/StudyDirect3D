@@ -29,11 +29,9 @@ public:
 	void SetParent(GameObject& InGameObject) { _Transform.SetParent(InGameObject.GetTransform()); }
 
 	// 메시
-	void SetMesh(std::shared_ptr<Mesh> InMesh) { _Mesh = InMesh; }
-	bool HasMesh() const { return _Mesh != nullptr; }
-	std::shared_ptr<Mesh> GetMesh() { return _Mesh; }
-
-
+	void SetMesh(const std::size_t& InMeshKey) { _MeshKey = InMeshKey; }
+	bool HasMesh() const { return _MeshKey != MathUtil::InvalidHash; }
+	FORCEINLINE std::size_t GetMeshKey() const { return _MeshKey; }
 
 	// 색상
 	void SetColor(const Color& InColor) { _Color = InColor; }
@@ -66,7 +64,7 @@ private:
 	std::size_t _Hash = MathUtil::InvalidHash;
 	std::string _Name;
 	
-	std::shared_ptr<Mesh> _Mesh;
+	std::size_t _MeshKey = MathUtil::InvalidHash;
 
 	TransformComponent _Transform;
 	Color _Color;

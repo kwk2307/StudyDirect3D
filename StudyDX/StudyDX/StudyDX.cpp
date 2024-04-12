@@ -50,6 +50,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	static float updatePeriod = 500.f;
 	while (WindowsPlayer::Tick())
 	{
+
 		Instance.OnTick();
 
 		float currentTime = Instance.GetElapsedTime();

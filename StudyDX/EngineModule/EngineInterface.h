@@ -16,6 +16,7 @@ public:
 
 	virtual CameraObject& GetCamera() = 0;
 
-	virtual MeshData& GetMesh(const std::size_t& InMeshKey) = 0;
-	
+	virtual const std::vector<std::shared_ptr<MeshData>>& GetMesh(const std::size_t& InMeshKey) const = 0;
+
+	std::function<void(const std::size_t& InMeshKey, std::vector<Vertex> InVertices, std::vector<uint32_t> InIndices, std::string InTextureFilename)> _OnCreateMesh;
 };

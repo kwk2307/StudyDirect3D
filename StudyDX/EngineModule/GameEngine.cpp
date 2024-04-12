@@ -4,6 +4,7 @@ const std::size_t GameEngine::RectangleMesh = std::hash<std::string>()("SM_Recta
 const std::size_t GameEngine::BoxMesh = std::hash<std::string>()("SM_Box");
 const std::size_t GameEngine::SphereMesh = std::hash<std::string>() ("SM_Sphere");
 
+
 struct GameObjectCompare
 {
 	bool operator()(const std::unique_ptr<GameObject>& lhs, std::size_t rhs)
@@ -52,36 +53,51 @@ GameObject& GameEngine::CreateNewGameObject(const std::string& InName)
 	return GetGameObject(InName);
 }
 
-MeshData& GameEngine::CreateMesh(const std::size_t& InKey)
+std::vector<std::shared_ptr<MeshData>>& GameEngine::CreateMesh(const std::size_t& InKey)
 {
-	auto meshPtr = std::make_unique<MeshData>();
+	std::vector<std::shared_ptr<MeshData>> vec;
+	_Meshes.insert({ InKey, vec });
 
-	_Meshes.insert({ InKey, std::move(meshPtr) });
-	return *_Meshes.at(InKey).get();
+	return _Meshes.at(InKey);
+}
+
+std::vector<std::shared_ptr<MeshData>>& GameEngine::CreateMesh(const std::size_t& InKey, const MeshData& InMesh)
+{
+	auto iter = _Meshes.find(InKey);
+	if (iter == _Meshes.end()) {
+		std::vector<std::shared_ptr<MeshData>> vec;
+		vec.push_back(std::make_shared<MeshData>(InMesh));
+		
+		_Meshes.insert({ InKey, vec });
+	}
+	else {
+		iter->second.push_back(std::make_shared<MeshData>(InMesh));
+	}
+	return _Meshes.at(InKey);
 }
 
 bool GameEngine::LoadResources()
 {
-	MeshData& rectangle = CreateMesh(GameEngine::RectangleMesh);
-	auto& v = rectangle.GetVertices();
-	auto& i = rectangle.GetIndices();
-	v = MeshData::MakeSquare().GetVertices();
-	i = MeshData::MakeSquare().GetIndices();
-	rectangle.SetMeshType(MeshType::Normal);
-
-	MeshData& box = CreateMesh(GameEngine::BoxMesh);
-	auto& v1 = box.GetVertices();
-	auto& i1 = box.GetIndices();
-	v1 = MeshData::MakeBox().GetVertices();
-	i1 = MeshData::MakeBox().GetIndices();
-	box.SetMeshType(MeshType::Normal);
-
-	MeshData& sphere = CreateMesh(GameEngine::SphereMesh);
-	auto& v2 = sphere.GetVertices();
-	auto& i2 = sphere.GetIndices();
-	v2 = MeshData::MakeSphere(1.f, 20, 20).GetVertices();
-	i2 = MeshData::MakeSphere(1.f, 20, 20).GetIndices();
-	sphere.SetMeshType(MeshType::Normal);
+	CreateMesh(GameEngine::BoxMesh).push_back(std::make_shared<MeshData>(GeometryGenerator::MakeBox()));
+	
+	std::vector<MeshData> meshes =  
+		GeometryGenerator::ReadFromFile("C:\\Users\\User\\Documents\\GitHub\\StudyDirect3D\\StudyDX\\StudyDX\\zeldaPosed001\\", "zeldaPosed001.fbx");
+	for (const auto& mesh : meshes) {
+		CreateMesh(std::hash<std::string>() ("zelda"), mesh);
+	}
+	
+	if (_OnCreateMesh != nullptr) {
+		for (auto it = _Meshes.begin(); it != _Meshes.end(); ++it) {
+			for (int i = 0; i < it->second.size(); ++i) {
+				_OnCreateMesh(
+					 it->first,
+					(it->second)[i].get()->GetVertices(),
+					(it->second)[i].get()->GetIndices(),
+					(it->second)[i].get()->GetTexture()
+				);
+			}
+		}
+	}
 
 	return true;
 }
@@ -111,8 +127,6 @@ bool GameEngine::Init()
 	}
 
 	_IsInitialized = true;
-	return _IsInitialized;
-	
 	return _IsInitialized;
 }
 

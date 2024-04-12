@@ -29,6 +29,8 @@ private:
 	void LateUpdate(float InDeltaSeconds);
 	void Render();
 
+	void UpdateGUI();
+
 	void LoadScene();
 
 	void CreateObject(const std::string& InName, const std::size_t& InMeshKey, const Transform& InTransform);
@@ -36,7 +38,6 @@ private:
 	RendererInterface& GetRenderer() { return *_RSIPtr.get(); }
 
 private:
-
 	// 초기화 점검 변수
 	bool _PerformanceCheckInitialized = false;
 	bool _RendererInitialized = false;

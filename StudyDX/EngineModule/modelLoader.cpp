@@ -2,7 +2,7 @@
 
 #include <filesystem>
 
-void modelLoader::Load(std::string basePath, std::string filename)
+void ModelLoader::Load(std::string basePath, std::string filename)
 {
     this->basePath = basePath;
 
@@ -17,7 +17,7 @@ void modelLoader::Load(std::string basePath, std::string filename)
 
 }
 
-void modelLoader::ProcessNode(aiNode* node, const aiScene* scene, DirectX::SimpleMath::Matrix tr)
+void ModelLoader::ProcessNode(aiNode* node, const aiScene* scene, DirectX::SimpleMath::Matrix tr)
 {
 
     Matrix m;
@@ -46,7 +46,7 @@ void modelLoader::ProcessNode(aiNode* node, const aiScene* scene, DirectX::Simpl
     }
 }
 
-MeshData modelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene)
+MeshData ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 {
     // Data to fill
     std::vector<Vertex> vertices;

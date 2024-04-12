@@ -3,7 +3,7 @@
 #include <assimp\postprocess.h>
 #include <assimp\scene.h>
 
-class modelLoader
+class ModelLoader
 {
 public:
     void Load(std::string basePath, std::string filename);

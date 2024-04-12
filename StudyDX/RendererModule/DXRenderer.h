@@ -58,12 +58,13 @@ public:
 	virtual void BeginFrame() override;
 	virtual void EndFrame() override;
 
-    virtual std::shared_ptr<Mesh> CreateMesh(const std::vector<Vertex>& InVertices, const std::vector<std::uint32_t> InIndices) override;
+    virtual void CreateMesh(const std::size_t& InMeshkey, const std::vector<Vertex>& InVertices, const std::vector<std::uint32_t> InIndices, const std::string InFileName) override;
 
-    virtual void OnUpdateEvnet(std::shared_ptr<Mesh> InMesh, const Matrix& InTransform, const Matrix& InView, const Matrix& InProj) override;
-    virtual void OnRenderEvent(std::shared_ptr<Mesh> InMesh) override;
+    virtual void OnRenderEvent(const std::size_t& InMeshKey, const Matrix& InTransform, const Matrix& InView, const Matrix& InProj) override;
 
 private:
+    bool InitGUI();
+
     void SetViewport();
     bool CreateRenderTargetView();
     bool CreateDepthBuffer();
@@ -175,11 +176,15 @@ private:
     ComPtr<ID3D11PixelShader> _BasicPixelShader;
     ComPtr<ID3D11InputLayout> _BasicInputLayout;
 
-    std::shared_ptr<Texture> _Texture;
+    std::unordered_map<std::size_t, std::vector<std::shared_ptr<Mesh>>> _Meshes;
+
     ComPtr<ID3D11SamplerState> _SamplerState;
 
     BasicVertexConstantBuffer _BasicVertexConstantBufferData;
     BasicPixelConstantBuffer _BasicPixelConstantBufferData;
+
+    ComPtr<ID3D11Buffer> _VertexConstantBuffer;
+    ComPtr<ID3D11Buffer> _PixelConstantBuffer;
 
     ComPtr<ID3D11Device> _Device;
     ComPtr<ID3D11DeviceContext> _Context;
@@ -188,7 +193,7 @@ private:
 
     ComPtr<ID3D11RasterizerState> _SolidRasterizerSate;
     ComPtr<ID3D11RasterizerState> _WireRasterizerSate;
-    bool m_DrawAsWire = false;
+    bool m_DrawAsWire = true;
 
     // Depth buffer ฐüทร
     ComPtr<ID3D11Texture2D> _DepthStencilBuffer;

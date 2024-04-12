@@ -24,6 +24,8 @@ bool DXRenderer::Init(const ScreenPoint& InSize)
 
     OnReSize(InSize);
 
+
+
     const D3D_DRIVER_TYPE driverType = D3D_DRIVER_TYPE_HARDWARE;
 
     UINT createDeviceFlags = 0;
@@ -228,9 +230,12 @@ bool DXRenderer::Init(const ScreenPoint& InSize)
         &depthStencilDesc, _DepthStencilState.GetAddressOf()))) {
         cout << "CreateDepthStencilState() failed." << endl;
     }
-    
-    _Texture = std::make_shared<Texture>();
-    CreateTexture("ojwD8.jpg", _Texture.get()->_Texture2D, _Texture.get()->_TextureResourceView);
+
+    _BasicVertexConstantBufferData.model = Matrix();
+    _BasicVertexConstantBufferData.view = Matrix();
+    _BasicVertexConstantBufferData.projection = Matrix();
+    CreateConstantBuffer(_BasicVertexConstantBufferData, _VertexConstantBuffer);
+    CreateConstantBuffer(_BasicPixelConstantBufferData, _PixelConstantBuffer);
 
     // Texture sampler 만들기
     D3D11_SAMPLER_DESC sampDesc;
@@ -264,6 +269,9 @@ bool DXRenderer::Init(const ScreenPoint& InSize)
     CreatePixelShader(L"BasicPixelShader.hlsl", _BasicPixelShader);
 
     _Initailized = true;
+
+    InitGUI();
+
     return true;
 }
 
@@ -306,6 +314,50 @@ void DXRenderer::EndFrame()
     _SwapChain->Present(1, 0);
 }
 
+void DXRenderer::CreateMesh(const std::size_t& InMeshkey, const std::vector<Vertex>& InVertices, const std::vector<std::uint32_t> InIndices, const std::string InFileName)
+{
+    std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
+    CreateVertexBuffer(InVertices, mesh->m_vertexBuffer);
+    mesh->m_indexCount = UINT(InIndices.size());
+    CreateIndexBuffer(InIndices, mesh->m_indexBuffer);
+
+    if (!InFileName.empty()) {
+        CreateTexture(InFileName, mesh->texture, 
+            mesh->textureResourceView);
+    }
+
+    auto iter = _Meshes.find(InMeshkey);
+    if (iter == _Meshes.end()) {
+        std::vector<std::shared_ptr<Mesh>> vec;
+        vec.push_back(mesh);
+
+        _Meshes.insert({ InMeshkey,vec });
+    }
+    else {
+        iter->second.push_back(mesh);
+    }
+}
+
+bool DXRenderer::InitGUI()
+{
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
+    io.DisplaySize = ImVec2(float(_ScreenWidth), float(_ScreenHeight));
+    ImGui::StyleColorsLight();
+
+    // Setup Platform/Renderer backends
+    if (!ImGui_ImplDX11_Init(_Device.Get(), _Context.Get())) {
+        return false;
+    }
+
+    if (!ImGui_ImplWin32_Init(_MainWindow)) {
+        return false;
+    }
+
+    return true;
+}
 
 void DXRenderer::SetViewport()
 {
@@ -420,7 +472,6 @@ void DXRenderer::CreateVertexShaderAndInputLayout(
         shaderBlob->GetBufferPointer(),
         shaderBlob->GetBufferSize(), &inputLayout);
 }
-
 void DXRenderer::CreatePixelShader(const std::wstring& filename, ComPtr<ID3D11PixelShader>& pixelShader)
 {
     ComPtr<ID3DBlob> shaderBlob;
@@ -443,7 +494,6 @@ void DXRenderer::CreatePixelShader(const std::wstring& filename, ComPtr<ID3D11Pi
         shaderBlob->GetBufferSize(), NULL,
         &pixelShader);
 }
-
 void DXRenderer::CreateIndexBuffer(const std::vector<uint32_t>& indices, ComPtr<ID3D11Buffer>& m_indexBuffer)
 {
     D3D11_BUFFER_DESC bufferDesc = {};
@@ -461,7 +511,6 @@ void DXRenderer::CreateIndexBuffer(const std::vector<uint32_t>& indices, ComPtr<
     _Device->CreateBuffer(&bufferDesc, &indexBufferData,
         m_indexBuffer.GetAddressOf());
 }
-
 void DXRenderer::CreateTexture(
     const std::string filename, 
     ComPtr<ID3D11Texture2D>& texture,
@@ -504,33 +553,15 @@ void DXRenderer::CreateTexture(
         textureResourceView.GetAddressOf());
 }
 
-std::shared_ptr<Mesh> DXRenderer::CreateMesh(const std::vector<Vertex>& InVertices, const std::vector<std::uint32_t> InIndices)
-{
-    std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
-
-    CreateVertexBuffer(InVertices, mesh->m_vertexBuffer);
-    mesh->m_indexCount = UINT(InIndices.size());
-
-    CreateIndexBuffer(InIndices, mesh->m_indexBuffer);
-
-    CreateConstantBuffer(_BasicVertexConstantBufferData,
-        mesh->m_vertexConstantBuffer);
-
-    CreateConstantBuffer(_BasicPixelConstantBufferData,
-        mesh->m_pixelConstantBuffer);
-
-    return mesh;
-}
-
-void DXRenderer::OnUpdateEvnet(std::shared_ptr<Mesh> InMesh, const Matrix& InTransform,const Matrix& InView,const Matrix& InProj )
-{
+void DXRenderer::OnRenderEvent(const std::size_t& InMeshKey, const Matrix& InTransform, const Matrix& InView, const Matrix& InProj) {
+  
     _BasicVertexConstantBufferData.model = InTransform;
     _BasicVertexConstantBufferData.model = _BasicVertexConstantBufferData.model.Transpose();
 
     _BasicVertexConstantBufferData.invTranspose = _BasicVertexConstantBufferData.model;
     _BasicVertexConstantBufferData.invTranspose.Translation(Vector3(0.0f));
-    _BasicVertexConstantBufferData.invTranspose = 
-     _BasicVertexConstantBufferData.invTranspose.Transpose().Invert();
+    _BasicVertexConstantBufferData.invTranspose =
+        _BasicVertexConstantBufferData.invTranspose.Transpose().Invert();
 
     //뷰
     _BasicVertexConstantBufferData.view = InView;
@@ -541,11 +572,10 @@ void DXRenderer::OnUpdateEvnet(std::shared_ptr<Mesh> InMesh, const Matrix& InTra
     // 프로젝션
     _BasicVertexConstantBufferData.projection = InProj;
     _BasicVertexConstantBufferData.projection =
-      _BasicVertexConstantBufferData.projection.Transpose();
+        _BasicVertexConstantBufferData.projection.Transpose();
 
-    // Constant를 CPU에서 GPU로 복사
     UpdateBuffer(_BasicVertexConstantBufferData,
-        InMesh->m_vertexConstantBuffer);
+        _VertexConstantBuffer);
 
     _BasicPixelConstantBufferData.useTexture = true;
     _BasicPixelConstantBufferData.material.diffuse = Vector3(0.7f);
@@ -562,13 +592,10 @@ void DXRenderer::OnUpdateEvnet(std::shared_ptr<Mesh> InMesh, const Matrix& InTra
             _BasicPixelConstantBufferData.lights[i] = _Light;
         }
     }
+
     UpdateBuffer(_BasicPixelConstantBufferData,
-        InMesh->m_pixelConstantBuffer);
+        _PixelConstantBuffer);
 
-}
-
-void DXRenderer::OnRenderEvent(std::shared_ptr<Mesh> InMesh)
-{
     if (_FirstObject) {
         SetViewport();
 
@@ -586,12 +613,12 @@ void DXRenderer::OnRenderEvent(std::shared_ptr<Mesh> InMesh)
 
     _Context->VSSetShader(_BasicVertexShader.Get(), 0, 0);
     _Context->VSSetConstantBuffers(
-        0, 1, InMesh->m_vertexConstantBuffer.GetAddressOf());
-    _Context->PSSetShaderResources(0, 1, _Texture->_TextureResourceView.GetAddressOf());
+        0, 1, _VertexConstantBuffer.GetAddressOf());
+
     _Context->PSSetSamplers(0, 1, _SamplerState.GetAddressOf());
 
     _Context->PSSetConstantBuffers(
-        0, 1, InMesh->m_pixelConstantBuffer.GetAddressOf());
+        0, 1, _PixelConstantBuffer.GetAddressOf());
     _Context->PSSetShader(_BasicPixelShader.Get(), 0, 0);
 
     _Context->RSSetState(_SolidRasterizerSate.Get());
@@ -600,12 +627,16 @@ void DXRenderer::OnRenderEvent(std::shared_ptr<Mesh> InMesh)
     UINT stride = sizeof(Vertex);
     UINT offset = 0;
 
-    _Context->IASetInputLayout(_BasicInputLayout.Get());
-    _Context->IASetVertexBuffers(0, 1, InMesh->m_vertexBuffer.GetAddressOf(),
-        &stride, &offset);
-    _Context->IASetIndexBuffer(InMesh->m_indexBuffer.Get(),
-        DXGI_FORMAT_R32_UINT, 0);
-    _Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    _Context->DrawIndexed(InMesh->m_indexCount, 0, 0);
+    for (const auto& mesh :_Meshes.at(InMeshKey)) {
 
+        _Context->PSSetShaderResources(0, 1, mesh.get()->textureResourceView.GetAddressOf());
+        _Context->IASetInputLayout(_BasicInputLayout.Get());
+        _Context->IASetVertexBuffers(0, 1, mesh.get()->m_vertexBuffer.GetAddressOf(),
+            &stride, &offset);
+        _Context->IASetIndexBuffer(mesh.get()->m_indexBuffer.Get(),
+            DXGI_FORMAT_R32_UINT, 0);
+        _Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        _Context->DrawIndexed(mesh.get()->m_indexCount, 0, 0);
+    }
+    
 }
