@@ -21,8 +21,14 @@ public:
 	virtual CameraObject& GetCamera() { return _MainCamera; }
 
 	//府家胶 包府 
+	
 	std::vector<std::shared_ptr<MeshData>>& CreateMesh(const std::size_t& InKey);
 	std::vector<std::shared_ptr<MeshData>>& CreateMesh(const std::size_t& InKey, const MeshData& InMesh);
+	std::vector<std::shared_ptr<MeshData>>& CreateMesh(const std::size_t& InKey, std::string InBasePath, std::string Infilename);
+
+	std::vector<MeshData> ReadFromFile(std::string InBasePath, std::string Infilename);
+
+	std::shared_ptr<TextureData>& CreateTexture(const std::size_t& InKey, std::string InBasePath, std::string Infilename);
 
 	// 皋矫
 	virtual const std::vector<std::shared_ptr<MeshData>>& GetMesh(const std::size_t& InMeshKey) const {
@@ -48,7 +54,9 @@ private:
 	InputManager _InputManager;
 
 	std::vector<std::unique_ptr<GameObject>> _Scene;
+	
 	std::unordered_map<std::size_t, std::vector<std::shared_ptr<MeshData>>> _Meshes;
+	std::unordered_map<std::size_t, std::shared_ptr<TextureData>> _Textures;
 
 	CameraObject _MainCamera;
 };

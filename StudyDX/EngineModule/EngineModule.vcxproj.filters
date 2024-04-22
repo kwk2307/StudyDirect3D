@@ -48,6 +48,12 @@
     <ClInclude Include="GeometryGenerator.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="PathMng.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureData.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TransformComponent.cpp">
@@ -75,6 +81,12 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="GeometryGenerator.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="PathMng.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureData.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

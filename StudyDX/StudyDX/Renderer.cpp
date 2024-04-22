@@ -12,8 +12,10 @@ Renderer::Renderer(RendererInterface* RI, EngineInterface* EI):
 
 void Renderer::OnTick()
 {
+
 	if (!_AllInitialized)
 	{
+		PathMng::GetInstance()->init();
 		// 퍼포먼스 카운터 초기화.
 		if (!_PerformanceCheckInitialized)
 		{

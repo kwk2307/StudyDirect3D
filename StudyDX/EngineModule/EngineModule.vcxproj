@@ -143,6 +143,8 @@
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="MeshData.h" />
     <ClInclude Include="ModelLoader.h" />
+    <ClInclude Include="PathMng.h" />
+    <ClInclude Include="TextureData.h" />
     <ClInclude Include="TransformComponent.h" />
     <ClInclude Include="Precompiled.h" />
   </ItemGroup>
@@ -154,10 +156,12 @@
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="MeshData.cpp" />
     <ClCompile Include="ModelLoader.cpp" />
+    <ClCompile Include="PathMng.cpp" />
     <ClCompile Include="Precompiled.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Precompiled.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="TextureData.cpp" />
     <ClCompile Include="TransformComponent.cpp" />
   </ItemGroup>
   <ItemGroup>

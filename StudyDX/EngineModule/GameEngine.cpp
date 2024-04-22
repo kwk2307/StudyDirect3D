@@ -55,8 +55,11 @@ GameObject& GameEngine::CreateNewGameObject(const std::string& InName)
 
 std::vector<std::shared_ptr<MeshData>>& GameEngine::CreateMesh(const std::size_t& InKey)
 {
-	std::vector<std::shared_ptr<MeshData>> vec;
-	_Meshes.insert({ InKey, vec });
+	auto iter = _Meshes.find(InKey);
+	if (iter == _Meshes.end()) {
+		std::vector<std::shared_ptr<MeshData>> vec;
+		_Meshes.insert({ InKey, vec });
+	}
 
 	return _Meshes.at(InKey);
 }
@@ -76,27 +79,77 @@ std::vector<std::shared_ptr<MeshData>>& GameEngine::CreateMesh(const std::size_t
 	return _Meshes.at(InKey);
 }
 
+std::vector<std::shared_ptr<MeshData>>& GameEngine::CreateMesh(const std::size_t& InKey, std::string InBasePath, std::string Infilename)
+{
+	// 경로 안에 파일이름 찾아서 넣는걸로
+	// 만들어야 할듯 ?
+	std::vector<MeshData> meshes = ReadFromFile(InBasePath, Infilename);
+	for (const auto& mesh : meshes) {
+		auto iter = _Meshes.find(InKey);
+		if (iter == _Meshes.end()) {
+			std::vector<std::shared_ptr<MeshData>> vec;
+			vec.push_back(std::make_shared<MeshData>(mesh));
+
+			_Meshes.insert({ InKey, vec });
+		}
+		else {
+			iter->second.push_back(std::make_shared<MeshData>(mesh));
+		}
+	}
+	return _Meshes.at(InKey);
+}
+
+std::vector<MeshData> GameEngine::ReadFromFile(std::string InBasePath, std::string Infilename)
+{
+	using namespace DirectX;
+
+	ModelLoader modelLoader;
+	modelLoader.Load(InBasePath, Infilename);
+	std::vector<MeshData>& meshes = modelLoader.meshes;
+
+	// Normalize vertices
+	Vector3 vmin(1000, 1000, 1000);
+	Vector3 vmax(-1000, -1000, -1000);
+	for (auto& mesh : meshes) {
+		for (auto& v : mesh._Vertices) {
+			vmin.x = XMMin(vmin.x, v.position.x);
+			vmin.y = XMMin(vmin.y, v.position.y);
+			vmin.z = XMMin(vmin.z, v.position.z);
+			vmax.x = XMMax(vmax.x, v.position.x);
+			vmax.y = XMMax(vmax.y, v.position.y);
+			vmax.z = XMMax(vmax.z, v.position.z);
+		}
+	}
+
+	float dx = vmax.x - vmin.x, dy = vmax.y - vmin.y, dz = vmax.z - vmin.z;
+	float dl = XMMax(XMMax(dx, dy), dz);
+	float cx = (vmax.x + vmin.x) * 0.5f, cy = (vmax.y + vmin.y) * 0.5f,
+		cz = (vmax.z + vmin.z) * 0.5f;
+
+	for (auto& mesh : meshes) {
+		for (auto& v : mesh._Vertices) {
+			v.position.x = (v.position.x - cx) / dl;
+			v.position.y = (v.position.y - cy) / dl;
+			v.position.z = (v.position.z - cz) / dl;
+		}
+	}
+
+	return meshes;
+}
+
+std::shared_ptr<TextureData>& GameEngine::CreateTexture(const std::size_t& InKey, std::string InBasePath, std::string Infilename)
+{
+	// TODO: 여기에 return 문을 삽입합니다.
+}
+
 bool GameEngine::LoadResources()
 {
 	CreateMesh(GameEngine::BoxMesh).push_back(std::make_shared<MeshData>(GeometryGenerator::MakeBox()));
-	
+
 	std::vector<MeshData> meshes =  
-		GeometryGenerator::ReadFromFile("C:\\Users\\User\\Documents\\GitHub\\StudyDirect3D\\StudyDX\\StudyDX\\zeldaPosed001\\", "zeldaPosed001.fbx");
+		ReadFromFile(PathMng::GetInstance()->GetContentPath()+"zeldaPosed001\\", "zeldaPosed001.fbx");
 	for (const auto& mesh : meshes) {
 		CreateMesh(std::hash<std::string>() ("zelda"), mesh);
-	}
-	
-	if (_OnCreateMesh != nullptr) {
-		for (auto it = _Meshes.begin(); it != _Meshes.end(); ++it) {
-			for (int i = 0; i < it->second.size(); ++i) {
-				_OnCreateMesh(
-					 it->first,
-					(it->second)[i].get()->GetVertices(),
-					(it->second)[i].get()->GetIndices(),
-					(it->second)[i].get()->GetTexture()
-				);
-			}
-		}
 	}
 
 	return true;

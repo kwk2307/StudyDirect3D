@@ -2,7 +2,6 @@
 class GeometryGenerator
 {
 public:
-	static std::vector<MeshData> ReadFromFile(std::string InBasePath, std::string Infilename);
 
 	static MeshData MakeSquare();
 	static MeshData MakeBox();
@@ -14,6 +13,5 @@ public:
 	static MeshData MakeSphere(const float radius, const int numSlices,
 		const int numStacks);
 	static MeshData SubdivideToSphere(const float radius, MeshData meshData);
-
 };
 
