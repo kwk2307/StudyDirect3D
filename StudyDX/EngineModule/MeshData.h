@@ -15,5 +15,6 @@ struct MeshData {
     std::vector<Vertex> _Vertices;
     std::vector<uint32_t> _Indices;
 
-	std::vector<std::size_t> _Textures[(int)TextureType::END];
+	std::string _Textures[(int)TextureType::END];
+
 };

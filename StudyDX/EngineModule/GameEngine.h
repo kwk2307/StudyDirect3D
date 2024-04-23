@@ -21,14 +21,18 @@ public:
 	virtual CameraObject& GetCamera() { return _MainCamera; }
 
 	//府家胶 包府 
-	
-	std::vector<std::shared_ptr<MeshData>>& CreateMesh(const std::size_t& InKey);
-	std::vector<std::shared_ptr<MeshData>>& CreateMesh(const std::size_t& InKey, const MeshData& InMesh);
-	std::vector<std::shared_ptr<MeshData>>& CreateMesh(const std::size_t& InKey, std::string InBasePath, std::string Infilename);
+	std::vector<std::shared_ptr<MeshData>>& CreateMesh(const std::size_t& InKey, const std::vector<MeshData>& InMeshes);
 
 	std::vector<MeshData> ReadFromFile(std::string InBasePath, std::string Infilename);
 
-	std::shared_ptr<TextureData>& CreateTexture(const std::size_t& InKey, std::string InBasePath, std::string Infilename);
+	std::shared_ptr<TextureData>& CreateTexture(const std::size_t& InKey, const std::string& InfileName, const bool isSRGB);
+
+	void ReadEXRImage(const std::string filename, std::vector<uint8_t>& image,
+		int& width, int& height, DXGI_FORMAT& pixelFormat);
+
+	void ReadImage(const std::string filename, std::vector<uint8_t>& image,
+		int& width, int& height);
+
 
 	// 皋矫
 	virtual const std::vector<std::shared_ptr<MeshData>>& GetMesh(const std::size_t& InMeshKey) const {

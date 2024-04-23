@@ -1,9 +1,9 @@
 #include "Precompiled.h"
 
+
 const std::size_t GameEngine::RectangleMesh = std::hash<std::string>()("SM_Rectangle");
 const std::size_t GameEngine::BoxMesh = std::hash<std::string>()("SM_Box");
 const std::size_t GameEngine::SphereMesh = std::hash<std::string>() ("SM_Sphere");
-
 
 struct GameObjectCompare
 {
@@ -53,49 +53,18 @@ GameObject& GameEngine::CreateNewGameObject(const std::string& InName)
 	return GetGameObject(InName);
 }
 
-std::vector<std::shared_ptr<MeshData>>& GameEngine::CreateMesh(const std::size_t& InKey)
+std::vector<std::shared_ptr<MeshData>>& GameEngine::CreateMesh(const std::size_t& InKey, const std::vector<MeshData>& InMeshes)
 {
-	auto iter = _Meshes.find(InKey);
-	if (iter == _Meshes.end()) {
-		std::vector<std::shared_ptr<MeshData>> vec;
-		_Meshes.insert({ InKey, vec });
-	}
+	std::vector<std::shared_ptr<MeshData>> vec;
+	for (const auto& mesh : InMeshes) {
+		vec.push_back(std::make_shared<MeshData>(mesh));
 
-	return _Meshes.at(InKey);
-}
-
-std::vector<std::shared_ptr<MeshData>>& GameEngine::CreateMesh(const std::size_t& InKey, const MeshData& InMesh)
-{
-	auto iter = _Meshes.find(InKey);
-	if (iter == _Meshes.end()) {
-		std::vector<std::shared_ptr<MeshData>> vec;
-		vec.push_back(std::make_shared<MeshData>(InMesh));
-		
-		_Meshes.insert({ InKey, vec });
-	}
-	else {
-		iter->second.push_back(std::make_shared<MeshData>(InMesh));
-	}
-	return _Meshes.at(InKey);
-}
-
-std::vector<std::shared_ptr<MeshData>>& GameEngine::CreateMesh(const std::size_t& InKey, std::string InBasePath, std::string Infilename)
-{
-	// 경로 안에 파일이름 찾아서 넣는걸로
-	// 만들어야 할듯 ?
-	std::vector<MeshData> meshes = ReadFromFile(InBasePath, Infilename);
-	for (const auto& mesh : meshes) {
-		auto iter = _Meshes.find(InKey);
-		if (iter == _Meshes.end()) {
-			std::vector<std::shared_ptr<MeshData>> vec;
-			vec.push_back(std::make_shared<MeshData>(mesh));
-
-			_Meshes.insert({ InKey, vec });
-		}
-		else {
-			iter->second.push_back(std::make_shared<MeshData>(mesh));
+		for (const auto& texture : mesh._Textures) {
+			CreateTexture(std::hash<std::string>()(texture), texture);
 		}
 	}
+	_Meshes.insert({ InKey, vec });
+	
 	return _Meshes.at(InKey);
 }
 
@@ -137,22 +106,112 @@ std::vector<MeshData> GameEngine::ReadFromFile(std::string InBasePath, std::stri
 	return meshes;
 }
 
-std::shared_ptr<TextureData>& GameEngine::CreateTexture(const std::size_t& InKey, std::string InBasePath, std::string Infilename)
+std::shared_ptr<TextureData>& GameEngine::CreateTexture(const std::size_t& InKey, const std::string& InfileName, const bool isSRGB)
 {
-	// TODO: 여기에 return 문을 삽입합니다.
+	std::shared_ptr<TextureData> texture = std::make_shared<TextureData>();
+
+	std::string ext(InfileName.end() - 3, InfileName.end());
+	std::transform(ext.begin(), ext.end(), ext.begin(), std::tolower);
+
+	if (ext == "exr") {
+		ReadEXRImage(InfileName, texture.get()->image, texture.get()->width, texture.get()->height, texture.get()->_PixelFormat);
+	}
+	else {
+		ReadImage(InfileName, texture.get()->image, texture.get()->width, texture.get()->height);
+	}
+	_Textures.insert({ InKey,texture });
+
+	return _Textures.at(InKey);
 }
 
-bool GameEngine::LoadResources()
+void GameEngine::ReadEXRImage(const std::string filename, std::vector<uint8_t>& image, int& width, int& height, DXGI_FORMAT& pixelFormat)
 {
-	CreateMesh(GameEngine::BoxMesh).push_back(std::make_shared<MeshData>(GeometryGenerator::MakeBox()));
+	using namespace DirectX;
+	const std::wstring wFilename(filename.begin(), filename.end());
 
-	std::vector<MeshData> meshes =  
-		ReadFromFile(PathMng::GetInstance()->GetContentPath()+"zeldaPosed001\\", "zeldaPosed001.fbx");
-	for (const auto& mesh : meshes) {
-		CreateMesh(std::hash<std::string>() ("zelda"), mesh);
+	TexMetadata metadata;
+	GetMetadataFromEXRFile(wFilename.c_str(), metadata);
+
+	ScratchImage scratchImage;
+	LoadFromEXRFile(wFilename.c_str(), NULL, scratchImage);
+
+	width = static_cast<int>(metadata.width);
+	height = static_cast<int>(metadata.height);
+	pixelFormat = metadata.format;
+
+	std::cout << filename << " " << metadata.width << " " << metadata.height << metadata.format << std::endl;
+
+	image.resize(scratchImage.GetPixelsSize());
+	memcpy(image.data(), scratchImage.GetPixels(), image.size());
+
+	// 데이터 범위 확인해보기
+	std::vector<float> f32(image.size() / 2);
+	uint16_t* f16 = (uint16_t*)image.data();
+	for (int i = 0; i < image.size() / 2; i++) {
+		f32[i] = fp16_ieee_to_fp32_value(f16[i]);
 	}
 
-	return true;
+	const float minValue = *std::min_element(f32.begin(), f32.end());
+	const float maxValue = *std::max_element(f32.begin(), f32.end());
+
+	std::cout << minValue << " " << maxValue << std::endl;
+
+	// f16 = (uint16_t *)image.data();
+	// for (int i = 0; i < image.size() / 2; i++) {
+	//     f16[i] = fp16_ieee_from_fp32_value(f32[i] * 2.0f);
+	// }
+}
+
+void GameEngine::ReadImage(const std::string filename, std::vector<uint8_t>& image, int& width, int& height)
+{
+	int channels;
+
+	unsigned char* img =
+		stbi_load(filename.c_str(), &width, &height, &channels, 0);
+
+	// assert(channels == 4);
+
+	std::cout << filename << " " << width << " " << height << " " << channels
+		<< std::endl;
+
+	// 4채널로 만들어서 복사
+	image.resize(width * height * 4);
+
+	if (channels == 1) {
+		for (size_t i = 0; i < width * height; i++) {
+			uint8_t g = img[i * channels + 0];
+			for (size_t c = 0; c < 4; c++) {
+				image[4 * i + c] = g;
+			}
+		}
+	}
+	else if (channels == 2) {
+		for (size_t i = 0; i < width * height; i++) {
+			for (size_t c = 0; c < 2; c++) {
+				image[4 * i + c] = img[i * channels + c];
+			}
+			image[4 * i + 2] = 255;
+			image[4 * i + 3] = 255;
+		}
+	}
+	else if (channels == 3) {
+		for (size_t i = 0; i < width * height; i++) {
+			for (size_t c = 0; c < 3; c++) {
+				image[4 * i + c] = img[i * channels + c];
+			}
+			image[4 * i + 3] = 255;
+		}
+	}
+	else if (channels == 4) {
+		for (size_t i = 0; i < width * height; i++) {
+			for (size_t c = 0; c < 4; c++) {
+				image[4 * i + c] = img[i * channels + c];
+			}
+		}
+	}
+	else {
+		std::cout << "Cannot read " << channels << " channels" << std::endl;
+	}
 }
 
 bool GameEngine::Init()
@@ -188,4 +247,13 @@ void GameEngine::OnScreenResize(const ScreenPoint& InScreenSize)
 	// 화면 크기의 설정
 	_ScreenSize = InScreenSize;
 	_MainCamera.SetViewportSize(_ScreenSize);
+}
+
+// 여기서 필요 리소스를 로드 해준다. 
+bool GameEngine::LoadResources()
+{
+	std::vector<MeshData> boxMesh = { GeometryGenerator::MakeBox(), };
+	CreateMesh(GameEngine::BoxMesh, boxMesh);
+
+	return true;
 }

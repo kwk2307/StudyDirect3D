@@ -13,6 +13,10 @@ public:
 
     MeshData ProcessMesh(aiMesh* mesh, const aiScene* scene);
 
+    std::string ReadFilename(aiMaterial* material, aiTextureType type);
+
+    void UpdateTangents();
+
 public:
     std::string basePath;
     std::vector<MeshData> meshes;
