@@ -16,6 +16,15 @@ using Microsoft::WRL::ComPtr;
 using std::cout;
 using std::endl;
 
+#include "BasicConstantData.h"
+#include "Light.h"
+#include "Material.h"
+#include "Mesh.h"
+
+#include "RenderObject.h" 
+
+#include "D3D11Utils.h"
+
 #include "RendererInterface.h"
 
 #include "Mesh.h"

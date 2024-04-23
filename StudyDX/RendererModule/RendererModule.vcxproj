@@ -137,19 +137,28 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BasicConstantData.h" />
+    <ClInclude Include="D3D11Utils.h" />
     <ClInclude Include="DXRenderer.h" />
+    <ClInclude Include="Light.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Precompiled.h" />
     <ClInclude Include="RendererHeaders.h" />
     <ClInclude Include="RendererInterface.h" />
+    <ClInclude Include="RenderObject.h" />
     <ClInclude Include="Texture.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="D3D11Utils.cpp" />
     <ClCompile Include="DXRenderer.cpp" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Precompiled.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Precompiled.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="RendererInterface.cpp" />
+    <ClCompile Include="RenderObject.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
